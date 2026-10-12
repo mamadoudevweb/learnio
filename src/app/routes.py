@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from flask import Flask
 
+from src.domains.auth.routes.v1 import account_bp, auth_bp, role_bp
 from src.domains.curriculum.routes.v1.chapter_routes import chapter_bp
 from src.domains.curriculum.routes.v1.lesson_routes import lesson_bp
 from src.domains.curriculum.routes.v1.subject_routes import subject_bp
@@ -19,3 +20,6 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(chapter_bp)
     app.register_blueprint(lesson_bp)
     app.register_blueprint(document_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(account_bp)
+    app.register_blueprint(role_bp)

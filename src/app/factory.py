@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.core.config import load_config
+from src.app.permissions_seed import seed_permissions
 from src.core.database import Base
 from src.core.errors import AppError
 from src.core.unit_of_work.sql_uow import SqlUnitOfWork
@@ -48,6 +49,8 @@ def create_app(env: str | None = None) -> Flask:
     )
 
     domain_services = build_domain_services(uow_factory)
+    # Seed default permissions before handling any requests
+    seed_permissions(uow_factory)
     app.extensions["domain_service"] = domain_services
 
     register_routes(app)

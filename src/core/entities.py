@@ -1,4 +1,12 @@
-"""Entité de base et types fondamentaux pour tous les domaines."""
+"""Entité de base et types fondamentaux pour tous les domaines.
+
+BaseEntity utilise Pydantic v2 (BaseModel) pour :
+  * la validation automatique des champs à la construction,
+  * la sérialisation (model_dump / model_dump_json),
+  * la compatibilité directe avec ConfigDict(from_attributes=True) dans les schémas.
+
+DomainEvent et ServiceResult restent des dataclasses gelées (valeurs immuables).
+"""
 
 from __future__ import annotations
 
@@ -6,6 +14,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Generic, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 
 EntityId = uuid.UUID
@@ -23,6 +33,9 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+# ---------------------------------------------------------------------------
+# Domain event base (frozen dataclass — pure value object)
+# ---------------------------------------------------------------------------
 
 @dataclass(frozen=True, kw_only=True)
 class DomainEvent:
@@ -31,25 +44,27 @@ class DomainEvent:
     timestamp: datetime = field(default_factory=utc_now)
 
 
+# ---------------------------------------------------------------------------
+# Base entity (Pydantic v2 BaseModel)
+# ---------------------------------------------------------------------------
 
-@dataclass(kw_only=True)
-class BaseEntity(Generic[ID]):
+class BaseEntity(BaseModel, Generic[ID]):
     """Classe de base commune à toutes les entités du projet.
 
     Fournit :
-    * un identifiant typé ;
+    * un identifiant typé UUID ;
     * des horodatages de création / modification ;
-    * un registre interne d'événements de domaine.
+    * un registre interne d'événements de domaine (non persisté, non sérialisé).
     """
 
-    id: ID
-    created_at: datetime = field(default_factory=utc_now)
-    updated_at: datetime = field(default_factory=utc_now)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    # --- événements de domaine (non persistés) ---
-    _events: list[DomainEvent] = field(
-        default_factory=list, init=False, repr=False, compare=False
-    )
+    id: ID = Field(default_factory=generate_id)  # type: ignore[assignment]
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    # Private — excluded from serialisation and schema
+    _events: list[DomainEvent] = PrivateAttr(default_factory=list)
 
     def register_event(self, event: DomainEvent) -> None:
         """Ajoute un événement de domaine en attente de publication."""
@@ -62,6 +77,9 @@ class BaseEntity(Generic[ID]):
         return events
 
 
+# ---------------------------------------------------------------------------
+# Service result (frozen dataclass — pure value object)
+# ---------------------------------------------------------------------------
 
 T = TypeVar("T")
 

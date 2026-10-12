@@ -9,8 +9,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.domains.curriculum.services.chapter_service import ChapterService
+from src.domains.auth.services import (
+    AccountService,
+    AuthDomainService,
+    AuthenticationService,
+    RoleService,
+)
 from src.domains.curriculum.services import CurriculumDomainService
+from src.domains.curriculum.services.chapter_service import ChapterService
 from src.domains.curriculum.services.lesson_service import LessonService
 from src.domains.curriculum.services.subject_service import SubjectService
 from src.domains.library.services import DocumentService, LibraryDomainService
@@ -22,6 +28,7 @@ class DomainServices:
 
     curriculum: CurriculumDomainService
     library: LibraryDomainService
+    auth: AuthDomainService
 
 
 def build_domain_services(uow_factory: Any) -> DomainServices:
@@ -34,4 +41,9 @@ def build_domain_services(uow_factory: Any) -> DomainServices:
     library = LibraryDomainService(
         document_service=DocumentService(uow_factory),
     )
-    return DomainServices(curriculum=curriculum, library=library)
+    auth = AuthDomainService(
+        authentication_service=AuthenticationService(uow_factory),
+        account_service=AccountService(uow_factory),
+        role_service=RoleService(uow_factory),
+    )
+    return DomainServices(curriculum=curriculum, library=library, auth=auth)
