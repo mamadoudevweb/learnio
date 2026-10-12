@@ -23,3 +23,9 @@ uploads/
 .vscode/
 *.swp
 *.swo
+
+# Tests & Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/

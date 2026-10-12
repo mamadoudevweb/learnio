@@ -7,7 +7,7 @@ from src.domains.library.routes.v1.schemas.document_schema import (
 
 __all__ = [
     "DocumentCreateSchema",
-    "DocumentUpdateSchema",
     "DocumentListQuerySchema",
     "DocumentResponseSchema",
+    "DocumentUpdateSchema",
 ]

@@ -1,5 +1,9 @@
 from src.domains.curriculum.entities import Chapter, Lesson, Subject
-from src.domains.curriculum.repositories.sql.orms import ChapterOrm, LessonOrm, SubjectOrm
+from src.domains.curriculum.repositories.sql.orms import (
+    ChapterOrm,
+    LessonOrm,
+    SubjectOrm,
+)
 
 
 class SubjectMapper:

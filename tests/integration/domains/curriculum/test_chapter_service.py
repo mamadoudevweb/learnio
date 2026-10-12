@@ -1,4 +1,5 @@
 import uuid
+
 from src.domains.curriculum.exceptions import ChapterNotFoundError
 from src.domains.curriculum.repositories.filters import ChapterFilter
 
@@ -14,7 +15,9 @@ def test_chapter_service_crud(domain_service):
     subject_id = uuid.uuid4()
 
     # Create
-    result = chapter_service.create_chapter(actor, subject_id=subject_id, title="Algèbre", order=1)
+    result = chapter_service.create_chapter(
+        actor, subject_id=subject_id, title="Algèbre", order=1
+    )
     assert result.data.id is not None
     assert result.data.title == "Algèbre"
     chapter_id = result.data.id
@@ -29,7 +32,9 @@ def test_chapter_service_crud(domain_service):
     assert len(list_result.data) == 1
 
     # Update
-    update_result = chapter_service.update_chapter(actor, chapter_id, title="Algèbre 2", description="Suite")
+    update_result = chapter_service.update_chapter(
+        actor, chapter_id, title="Algèbre 2", description="Suite"
+    )
     assert update_result.data.title == "Algèbre 2"
     assert update_result.data.description == "Suite"
 

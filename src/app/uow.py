@@ -8,14 +8,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.domains.auth.repositories.sql import (
-    AccountRepository,
+from src.domains.account.auth.repositories.sql import (
     CredentialRepository,
     CredentialResetRepository,
-    PermissionRepository,
-    RoleRepository,
     SessionRepository,
 )
+from src.domains.account.rbac.repositories.sql import (
+    PermissionRepository,
+    RoleRepository,
+)
+from src.domains.account.repositories.sql import AccountRepository
 from src.domains.curriculum.repositories.sql import (
     ChapterRepository,
     LessonRepository,
@@ -23,8 +25,6 @@ from src.domains.curriculum.repositories.sql import (
 )
 from src.domains.library.repositories.sql import DocumentRepository
 
-# Sera rempli au fur et à mesure de l'ajout des domaines.
-# Format : {"RepositoryName": RepositoryClass}
 REPOSITORY_CLASSES: dict[str, type[Any]] = {
     "SubjectRepository": SubjectRepository,
     "ChapterRepository": ChapterRepository,

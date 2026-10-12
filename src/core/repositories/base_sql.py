@@ -58,9 +58,7 @@ class BaseSqlRepository(ABC, Generic[E, F]):
 
         if filter.sort_by and hasattr(self.model, filter.sort_by):
             column = getattr(self.model, filter.sort_by)
-            query = query.order_by(
-                column.desc() if filter.sort_desc else column.asc()
-            )
+            query = query.order_by(column.desc() if filter.sort_desc else column.asc())
 
         query = query.offset(filter.offset).limit(filter.page_size)
         results = self._session.execute(query).scalars().all()

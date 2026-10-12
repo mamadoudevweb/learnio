@@ -1,7 +1,6 @@
 """Constructeur des services de domaine.
 
 Instancie chaque service de domaine avec la fabrique d'unités de travail.
-Sera enrichi à chaque nouveau domaine.
 """
 
 from __future__ import annotations
@@ -9,12 +8,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.domains.auth.services import (
-    AccountService,
-    AuthDomainService,
-    AuthenticationService,
-    RoleService,
-)
+from src.domains.account.auth.services import AuthenticationService
+from src.domains.account.rbac.services import PermissionService, RoleService
+from src.domains.account.services import AccountDomainService, AccountService
 from src.domains.curriculum.services import CurriculumDomainService
 from src.domains.curriculum.services.chapter_service import ChapterService
 from src.domains.curriculum.services.lesson_service import LessonService
@@ -28,7 +24,17 @@ class DomainServices:
 
     curriculum: CurriculumDomainService
     library: LibraryDomainService
-    auth: AuthDomainService
+    account: AccountDomainService
+
+    @property
+    def auth(self) -> AccountDomainService:
+        """Alias pour le sous-domaine auth au sein du domaine account."""
+        return self.account
+
+    @property
+    def access_control(self) -> AccountDomainService:
+        """Alias pour le sous-domaine rbac au sein du domaine account."""
+        return self.account
 
 
 def build_domain_services(uow_factory: Any) -> DomainServices:
@@ -41,9 +47,10 @@ def build_domain_services(uow_factory: Any) -> DomainServices:
     library = LibraryDomainService(
         document_service=DocumentService(uow_factory),
     )
-    auth = AuthDomainService(
-        authentication_service=AuthenticationService(uow_factory),
+    account = AccountDomainService(
         account_service=AccountService(uow_factory),
+        authentication_service=AuthenticationService(uow_factory),
         role_service=RoleService(uow_factory),
+        permission_service=PermissionService(uow_factory),
     )
-    return DomainServices(curriculum=curriculum, library=library, auth=auth)
+    return DomainServices(curriculum=curriculum, library=library, account=account)

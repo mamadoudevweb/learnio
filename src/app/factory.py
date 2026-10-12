@@ -12,15 +12,14 @@ from flask_jwt_extended import JWTManager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.core.config import load_config
+from src.app.domain_service_builder import build_domain_services
 from src.app.permissions_seed import seed_permissions
+from src.app.routes import register_routes
+from src.app.uow import REPOSITORY_CLASSES
+from src.core.config import load_config
 from src.core.database import Base
 from src.core.errors import AppError
 from src.core.unit_of_work.sql_uow import SqlUnitOfWork
-from src.app.uow import REPOSITORY_CLASSES
-from src.app.domain_service_builder import build_domain_services
-from src.app.routes import register_routes
-
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +63,11 @@ def create_app(env: str | None = None) -> Flask:
         )
 
     from pydantic import ValidationError as PydanticValidationError
+
     @app.errorhandler(PydanticValidationError)
-    def handle_pydantic_validation_error(error: PydanticValidationError) -> tuple[Any, int]:
+    def handle_pydantic_validation_error(
+        error: PydanticValidationError,
+    ) -> tuple[Any, int]:
         return (
             jsonify(
                 {

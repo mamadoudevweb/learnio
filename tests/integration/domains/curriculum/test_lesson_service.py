@@ -1,4 +1,5 @@
 import uuid
+
 from src.domains.curriculum.exceptions import LessonNotFoundError
 from src.domains.curriculum.repositories.filters import LessonFilter
 
@@ -31,7 +32,9 @@ def test_lesson_service_crud(domain_service):
     assert len(list_result.data) == 1
 
     # Update
-    update_result = lesson_service.update_lesson(actor, lesson_id, title="Équations du 1er degré")
+    update_result = lesson_service.update_lesson(
+        actor, lesson_id, title="Équations du 1er degré"
+    )
     assert update_result.data.title == "Équations du 1er degré"
 
     # Delete

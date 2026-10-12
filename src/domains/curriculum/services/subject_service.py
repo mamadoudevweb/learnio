@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from src.core.services import BaseService, SupportsPermissionCheck
 from src.core.entities import ServiceResult
+from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.curriculum.entities import Subject
 from src.domains.curriculum.exceptions import SubjectNotFoundError
 from src.domains.curriculum.repositories.filters import SubjectFilter
@@ -85,6 +85,6 @@ class SubjectService(BaseService):
             subject = repo.get(subject_id)
             if not subject:
                 raise SubjectNotFoundError(f"Matière {subject_id} introuvable")
-            
+
             repo.delete(subject_id)
             return ServiceResult(data=None)

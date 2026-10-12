@@ -1,8 +1,8 @@
 """Point d'entrée de l'application Learnio."""
 
-from src.app.factory import create_app
-
 import os
+
+from src.app.factory import create_app
 
 app = create_app()
 

@@ -9,5 +9,5 @@ class Subject(BaseEntity[EntityId]):
     is_active: bool = True
 
     @classmethod
-    def create(cls, name: str, code: str) -> "Subject":
+    def create(cls, name: str, code: str) -> Subject:
         return cls(name=name, code=code)

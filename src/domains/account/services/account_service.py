@@ -5,10 +5,9 @@ from src.core.entities import ServiceResult
 from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.account.entities.account import Account
 from src.domains.account.exceptions import AccountNotFoundError, RoleNotFoundError
+from src.domains.account.rbac.repositories.sql import RoleRepository
 from src.domains.account.repositories.filters import AccountFilter
 from src.domains.account.repositories.sql import AccountRepository
-# RoleRepository lives in access_control but we reference it by its class only
-from src.domains.access_control.repositories.sql import RoleRepository
 
 
 class AccountService(BaseService):
@@ -99,6 +98,20 @@ class AccountService(BaseService):
             if not role:
                 raise RoleNotFoundError(f"Rôle {role_id} introuvable")
             account.assign_role(role_id)
+            account_repo.update(account)
+            uow.track(account)
+            return ServiceResult(data=account)
+
+    def remove_role_from_account(
+        self, actor: SupportsPermissionCheck, account_id: UUID, role_id: UUID
+    ) -> ServiceResult[Account]:
+        self._authorize(actor, "account", "account", "update")
+        with self._uow_factory() as uow:
+            account_repo = uow.get_repository(AccountRepository)
+            account = account_repo.get(account_id)
+            if not account:
+                raise AccountNotFoundError(f"Compte {account_id} introuvable")
+            account.remove_role(role_id)
             account_repo.update(account)
             uow.track(account)
             return ServiceResult(data=account)

@@ -28,7 +28,9 @@ def test_subject_service_crud(domain_service):
     assert list_result.meta["total"] == 1
 
     # Update
-    update_result = subject_service.update_subject(actor, subject_id, name="Physique-Chimie", is_active=False)
+    update_result = subject_service.update_subject(
+        actor, subject_id, name="Physique-Chimie", is_active=False
+    )
     assert update_result.data.name == "Physique-Chimie"
     assert update_result.data.is_active is False
 

@@ -5,7 +5,9 @@ from src.domains.account.repositories.sql.orms.account_orm import AccountOrm
 class AccountMapper:
     @staticmethod
     def to_entity(orm_obj: AccountOrm) -> Account:
-        role_ids = [r.id for r in orm_obj.roles] if getattr(orm_obj, "roles", None) else []
+        role_ids = (
+            [r.id for r in orm_obj.roles] if getattr(orm_obj, "roles", None) else []
+        )
         return Account(
             id=orm_obj.id,
             first_name=orm_obj.first_name,

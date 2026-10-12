@@ -1,12 +1,11 @@
-from functools import partial
 import pytest
-from sqlalchemy.orm import sessionmaker
 from flask_jwt_extended import create_access_token
+from sqlalchemy.orm import sessionmaker
 
-from src.app.factory import create_app
-from src.core.unit_of_work.sql_uow import SqlUnitOfWork
-from src.app.uow import REPOSITORY_CLASSES
 from src.app.domain_service_builder import build_domain_services
+from src.app.factory import create_app
+from src.app.uow import REPOSITORY_CLASSES
+from src.core.unit_of_work.sql_uow import SqlUnitOfWork
 
 
 @pytest.fixture(scope="session")
@@ -29,7 +28,7 @@ def db_session(app):
     engine = app.extensions["engine"]
     connection = engine.connect()
     transaction = connection.begin()
-    
+
     Session = sessionmaker(bind=connection, join_transaction_mode="create_savepoint")
     session = Session()
 
@@ -44,6 +43,7 @@ def db_session(app):
 @pytest.fixture
 def uow_factory(db_session):
     """Fabrique d'UnitOfWork qui utilise la session de test isolée."""
+
     # Au lieu de créer une nouvelle session avec session_factory,
     # on passe directement la session isolée.
     def factory():
@@ -52,6 +52,7 @@ def uow_factory(db_session):
             repository_classes=REPOSITORY_CLASSES,
         )
         return uow
+
     return factory
 
 

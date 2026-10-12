@@ -8,9 +8,9 @@ from src.domains.library.entities.events import (
 
 __all__ = [
     "Document",
-    "DocumentType",
-    "DocumentSource",
     "DocumentCreated",
-    "DocumentUpdated",
     "DocumentDeleted",
+    "DocumentSource",
+    "DocumentType",
+    "DocumentUpdated",
 ]

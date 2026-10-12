@@ -54,7 +54,10 @@ def test_document_routes_crud(client, auth_headers):
         headers=auth_headers,
     )
     assert update_response.status_code == 200
-    assert update_response.json["data"]["title"] == "Cours d'Économie - La Monnaie et le Crédit"
+    assert (
+        update_response.json["data"]["title"]
+        == "Cours d'Économie - La Monnaie et le Crédit"
+    )
     assert update_response.json["data"]["year"] == 2025
 
     # 5. Delete document

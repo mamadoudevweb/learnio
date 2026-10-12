@@ -1,10 +1,19 @@
 """Account entity — belongs to the ``account`` bounded-context."""
+
+from __future__ import annotations
+
 from datetime import date
 from uuid import UUID
 
 from pydantic import Field
 
 from src.core.entities import BaseEntity, EntityId, utc_now
+from src.domains.account.entities.events import (
+    AccountCreated,
+    AccountRoleAssigned,
+    AccountRoleRemoved,
+    AccountUpdated,
+)
 
 
 class Account(BaseEntity[EntityId]):
@@ -25,14 +34,18 @@ class Account(BaseEntity[EntityId]):
         birth_date: date | None = None,
         active: bool = True,
         role_ids: list[UUID] | None = None,
-    ) -> "Account":
-        return cls(
+    ) -> Account:
+        account = cls(
             first_name=first_name.strip(),
             last_name=last_name.strip(),
             birth_date=birth_date,
             active=active,
             role_ids=list(role_ids) if role_ids else [],
         )
+        account.register_event(
+            AccountCreated(account_id=account.id, first_name=account.first_name)
+        )
+        return account
 
     def update_profile(
         self,
@@ -51,13 +64,18 @@ class Account(BaseEntity[EntityId]):
         if active is not None:
             self.active = active
         self.updated_at = utc_now()
+        self.register_event(AccountUpdated(account_id=self.id))
 
     def assign_role(self, role_id: UUID) -> None:
         if role_id not in self.role_ids:
             self.role_ids.append(role_id)
             self.updated_at = utc_now()
+            self.register_event(
+                AccountRoleAssigned(account_id=self.id, role_id=role_id)
+            )
 
     def remove_role(self, role_id: UUID) -> None:
         if role_id in self.role_ids:
             self.role_ids.remove(role_id)
             self.updated_at = utc_now()
+            self.register_event(AccountRoleRemoved(account_id=self.id, role_id=role_id))

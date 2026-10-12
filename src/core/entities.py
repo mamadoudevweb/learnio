@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
-
 
 EntityId = uuid.UUID
 
@@ -30,12 +29,13 @@ def generate_id() -> EntityId:
 
 def utc_now() -> datetime:
     """Retourne l'instant courant en UTC."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # ---------------------------------------------------------------------------
 # Domain event base (frozen dataclass — pure value object)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True, kw_only=True)
 class DomainEvent:
@@ -47,6 +47,7 @@ class DomainEvent:
 # ---------------------------------------------------------------------------
 # Base entity (Pydantic v2 BaseModel)
 # ---------------------------------------------------------------------------
+
 
 class BaseEntity(BaseModel, Generic[ID]):
     """Classe de base commune à toutes les entités du projet.

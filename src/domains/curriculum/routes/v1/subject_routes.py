@@ -33,7 +33,7 @@ def list_subjects() -> tuple[Any, int]:
     query_data = SubjectListQuerySchema(**request.args)
     actor = MockActor(get_jwt_identity())
     domain_service = current_app.extensions["domain_service"]
-    
+
     filter = SubjectFilter(
         page=query_data.page,
         page_size=query_data.page_size,
@@ -82,11 +82,11 @@ def update_subject(subject_id: UUID) -> tuple[Any, int]:
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.subject_service.update_subject(
-        actor, 
-        subject_id=subject_id, 
-        name=payload.name, 
-        code=payload.code, 
-        is_active=payload.is_active
+        actor,
+        subject_id=subject_id,
+        name=payload.name,
+        code=payload.code,
+        is_active=payload.is_active,
     )
     data = SubjectResponseSchema(**result.data.__dict__).model_dump()
     return ok(data)

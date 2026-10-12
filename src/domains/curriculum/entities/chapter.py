@@ -1,9 +1,6 @@
-from dataclasses import dataclass
-
-from src.core.entities import BaseEntity, EntityId, generate_id
+from src.core.entities import BaseEntity, EntityId
 
 
-@dataclass(kw_only=True)
 class Chapter(BaseEntity[EntityId]):
     """Chapitre d'une matière."""
 
@@ -15,9 +12,8 @@ class Chapter(BaseEntity[EntityId]):
     @classmethod
     def create(
         cls, subject_id: EntityId, title: str, order: int, description: str = ""
-    ) -> "Chapter":
+    ) -> Chapter:
         return cls(
-            id=generate_id(),
             subject_id=subject_id,
             title=title,
             description=description,

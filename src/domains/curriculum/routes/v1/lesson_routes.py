@@ -33,7 +33,7 @@ def list_lessons() -> tuple[Any, int]:
     query_data = LessonListQuerySchema(**request.args)
     actor = MockActor(get_jwt_identity())
     domain_service = current_app.extensions["domain_service"]
-    
+
     filter = LessonFilter(
         page=query_data.page,
         page_size=query_data.page_size,
@@ -66,11 +66,11 @@ def create_lesson() -> tuple[Any, int]:
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.lesson_service.create_lesson(
-        actor, 
-        chapter_id=payload.chapter_id, 
-        title=payload.title, 
+        actor,
+        chapter_id=payload.chapter_id,
+        title=payload.title,
         content=payload.content,
-        order=payload.order
+        order=payload.order,
     )
     data = LessonResponseSchema(**result.data.__dict__).model_dump()
     return ok(data, status=201)
@@ -85,11 +85,11 @@ def update_lesson(lesson_id: UUID) -> tuple[Any, int]:
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.lesson_service.update_lesson(
-        actor, 
-        lesson_id=lesson_id, 
-        title=payload.title, 
-        content=payload.content, 
-        order=payload.order
+        actor,
+        lesson_id=lesson_id,
+        title=payload.title,
+        content=payload.content,
+        order=payload.order,
     )
     data = LessonResponseSchema(**result.data.__dict__).model_dump()
     return ok(data)

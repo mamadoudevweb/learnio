@@ -15,14 +15,14 @@ from src.domains.library.services import DocumentService, LibraryDomainService
 
 __all__ = [
     "Document",
-    "DocumentType",
-    "DocumentSource",
+    "DocumentConflictError",
     "DocumentCreated",
-    "DocumentUpdated",
     "DocumentDeleted",
     "DocumentNotFoundError",
-    "DocumentUploadError",
-    "DocumentConflictError",
     "DocumentService",
+    "DocumentSource",
+    "DocumentType",
+    "DocumentUpdated",
+    "DocumentUploadError",
     "LibraryDomainService",
 ]

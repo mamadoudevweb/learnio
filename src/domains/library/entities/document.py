@@ -1,12 +1,10 @@
-from dataclasses import dataclass
 from uuid import UUID
 
-from src.core.entities import BaseEntity, EntityId, generate_id
+from src.core.entities import BaseEntity, EntityId
 from src.domains.library.entities.enums import DocumentSource, DocumentType
 from src.domains.library.entities.events import DocumentCreated, DocumentUpdated
 
 
-@dataclass(kw_only=True)
 class Document(BaseEntity[EntityId]):
     """Document de la bibliothèque personnelle de révision."""
 
@@ -39,10 +37,8 @@ class Document(BaseEntity[EntityId]):
         year: int | None = None,
         extracted_text: str | None = None,
         is_text_extracted: bool = False,
-    ) -> "Document":
-        doc_id = generate_id()
+    ) -> Document:
         doc = cls(
-            id=doc_id,
             title=title,
             file_path=file_path,
             file_name=file_name,
@@ -56,7 +52,7 @@ class Document(BaseEntity[EntityId]):
             extracted_text=extracted_text,
             is_text_extracted=is_text_extracted,
         )
-        doc.register_event(DocumentCreated(document_id=doc_id, title=title))
+        doc.register_event(DocumentCreated(document_id=doc.id, title=title))
         return doc
 
     def update_metadata(

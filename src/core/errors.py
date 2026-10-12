@@ -8,11 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Registre global (code → classe)
 # ---------------------------------------------------------------------------
-_ERROR_REGISTRY: dict[str, type["AppError"]] = {}
+_ERROR_REGISTRY: dict[str, type[AppError]] = {}
 
 
 class AppError(Exception):

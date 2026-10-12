@@ -7,7 +7,10 @@ from src.core.repositories.base_sql import BaseSqlRepository
 from src.domains.account.entities.account import Account
 from src.domains.account.repositories.filters import AccountFilter
 from src.domains.account.repositories.sql import mappers
-from src.domains.account.repositories.sql.orms.account_orm import AccountOrm, account_roles
+from src.domains.account.repositories.sql.orms.account_orm import (
+    AccountOrm,
+    account_roles,
+)
 
 
 class AccountRepository(BaseSqlRepository[Account, AccountFilter]):

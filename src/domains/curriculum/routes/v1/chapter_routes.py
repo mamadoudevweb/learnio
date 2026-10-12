@@ -33,7 +33,7 @@ def list_chapters() -> tuple[Any, int]:
     query_data = ChapterListQuerySchema(**request.args)
     actor = MockActor(get_jwt_identity())
     domain_service = current_app.extensions["domain_service"]
-    
+
     filter = ChapterFilter(
         page=query_data.page,
         page_size=query_data.page_size,
@@ -66,11 +66,11 @@ def create_chapter() -> tuple[Any, int]:
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.chapter_service.create_chapter(
-        actor, 
-        subject_id=payload.subject_id, 
-        title=payload.title, 
-        order=payload.order, 
-        description=payload.description
+        actor,
+        subject_id=payload.subject_id,
+        title=payload.title,
+        order=payload.order,
+        description=payload.description,
     )
     data = ChapterResponseSchema(**result.data.__dict__).model_dump()
     return ok(data, status=201)
@@ -85,11 +85,11 @@ def update_chapter(chapter_id: UUID) -> tuple[Any, int]:
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.chapter_service.update_chapter(
-        actor, 
-        chapter_id=chapter_id, 
-        title=payload.title, 
-        description=payload.description, 
-        order=payload.order
+        actor,
+        chapter_id=chapter_id,
+        title=payload.title,
+        description=payload.description,
+        order=payload.order,
     )
     data = ChapterResponseSchema(**result.data.__dict__).model_dump()
     return ok(data)
