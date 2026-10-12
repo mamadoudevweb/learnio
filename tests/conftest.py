@@ -30,13 +30,14 @@ def db_session(app):
     connection = engine.connect()
     transaction = connection.begin()
     
-    Session = sessionmaker(bind=connection)
+    Session = sessionmaker(bind=connection, join_transaction_mode="create_savepoint")
     session = Session()
 
     yield session
 
     session.close()
-    transaction.rollback()
+    if transaction.is_active:
+        transaction.rollback()
     connection.close()
 
 

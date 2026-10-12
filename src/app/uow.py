@@ -13,6 +13,7 @@ from src.domains.curriculum.repositories.sql import (
     LessonRepository,
     SubjectRepository,
 )
+from src.domains.library.repositories.sql import DocumentRepository
 
 # Sera rempli au fur et à mesure de l'ajout des domaines.
 # Format : {"RepositoryName": RepositoryClass}
@@ -20,4 +21,5 @@ REPOSITORY_CLASSES: dict[str, type[Any]] = {
     "SubjectRepository": SubjectRepository,
     "ChapterRepository": ChapterRepository,
     "LessonRepository": LessonRepository,
+    "DocumentRepository": DocumentRepository,
 }

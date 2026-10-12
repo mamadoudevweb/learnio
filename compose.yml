@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: learnio:latest
+    container_name: learnio-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - LEARNIO_ENV=production
+      - LEARNIO_SECRET_KEY=${LEARNIO_SECRET_KEY:?LEARNIO_SECRET_KEY must be set}
+      - LEARNIO_JWT_SECRET_KEY=${LEARNIO_JWT_SECRET_KEY:?LEARNIO_JWT_SECRET_KEY must be set}
+      - LEARNIO_DATABASE_URL=${LEARNIO_DATABASE_URL:?LEARNIO_DATABASE_URL must be set}
+      - LEARNIO_RATELIMIT_DEFAULT=200 per day;50 per hour
+      - LEARNIO_UPLOAD_DIR=/app/uploads
+      - LEARNIO_MAX_FILE_SIZE_MB=16
+    volumes:
+      - app_data:/app/data
+      - app_uploads:/app/uploads
+
+volumes:
+  app_data:
+  app_uploads:

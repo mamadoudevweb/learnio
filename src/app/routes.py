@@ -10,6 +10,7 @@ from flask import Flask
 from src.domains.curriculum.routes.v1.chapter_routes import chapter_bp
 from src.domains.curriculum.routes.v1.lesson_routes import lesson_bp
 from src.domains.curriculum.routes.v1.subject_routes import subject_bp
+from src.domains.library.routes.v1.document_routes import document_bp
 
 
 def register_routes(app: Flask) -> None:
@@ -17,3 +18,4 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(subject_bp)
     app.register_blueprint(chapter_bp)
     app.register_blueprint(lesson_bp)
+    app.register_blueprint(document_bp)

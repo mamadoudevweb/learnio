@@ -17,8 +17,8 @@ class BaseConfig(BaseSettings):
     # --- Application ---
     APP_NAME: str = "learnio"
     DEBUG: bool = False
-    SECRET_KEY: str = "change-me-in-production"
-    JWT_SECRET_KEY: str = "change-me-too-in-production"
+    SECRET_KEY: str = "change-me-in-production-at-least-32-chars-long"
+    JWT_SECRET_KEY: str = "change-me-too-in-production-at-least-32-chars-long"
 
     # --- Base de données ---
     DATABASE_URL: str = "sqlite:///learnio.db"
@@ -56,8 +56,8 @@ class TestingConfig(BaseConfig):
 
     DEBUG: bool = True
     DATABASE_URL: str = "sqlite:///:memory:"
-    SECRET_KEY: str = "test-secret-key"
-    JWT_SECRET_KEY: str = "test-jwt-secret-key"
+    SECRET_KEY: str = "test-secret-key-at-least-32-chars-long"
+    JWT_SECRET_KEY: str = "test-jwt-secret-key-at-least-32-chars-long"
 
 
 class ProductionConfig(BaseConfig):

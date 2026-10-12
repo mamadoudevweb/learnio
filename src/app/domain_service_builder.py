@@ -13,6 +13,7 @@ from src.domains.curriculum.services.chapter_service import ChapterService
 from src.domains.curriculum.services import CurriculumDomainService
 from src.domains.curriculum.services.lesson_service import LessonService
 from src.domains.curriculum.services.subject_service import SubjectService
+from src.domains.library.services import DocumentService, LibraryDomainService
 
 
 @dataclass
@@ -20,6 +21,7 @@ class DomainServices:
     """Conteneur de tous les services de domaine de l'application."""
 
     curriculum: CurriculumDomainService
+    library: LibraryDomainService
 
 
 def build_domain_services(uow_factory: Any) -> DomainServices:
@@ -29,4 +31,7 @@ def build_domain_services(uow_factory: Any) -> DomainServices:
         chapter_service=ChapterService(uow_factory),
         lesson_service=LessonService(uow_factory),
     )
-    return DomainServices(curriculum=curriculum)
+    library = LibraryDomainService(
+        document_service=DocumentService(uow_factory),
+    )
+    return DomainServices(curriculum=curriculum, library=library)
