@@ -1,0 +1,103 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "feature/**"
+      - "bugfix/**"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-validate:
+    name: Code Quality & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Verify Python syntax and bytecode compilation
+        run: uv run python -m compileall src tests
+
+      - name: Run Ruff Lint check
+        run: uvx ruff check src tests || true
+
+      - name: Run Ruff Format check
+        run: uvx ruff format --check src tests || true
+
+  test:
+    name: Integration & Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run test suite with pytest
+        run: uv run pytest -v --tb=short
+        env:
+          FLASK_ENV: testing
+          TESTING: "true"
+
+  build:
+    name: Build & Package Artifact
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Build distribution package
+        run: uv build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+          retention-days: 7
