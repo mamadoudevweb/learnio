@@ -44,10 +44,10 @@ jobs:
         run: uv run python -m compileall src tests
 
       - name: Run Ruff Lint check
-        run: uvx ruff check src tests || true
+        run: uvx ruff check src tests
 
       - name: Run Ruff Format check
-        run: uvx ruff format --check src tests || true
+        run: uvx ruff format --check src tests
 
   test:
     name: Integration & Unit Tests
