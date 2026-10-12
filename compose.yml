@@ -9,13 +9,13 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - LEARNIO_ENV=development
-      - LEARNIO_SECRET_KEY=dev-secret-key-change-in-production-32bytes-min
-      - LEARNIO_JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production-32bytes-min
-      - LEARNIO_DATABASE_URL=sqlite:////app/data/learnio.db
+      - LEARNIO_ENV=production
+      - LEARNIO_SECRET_KEY=${LEARNIO_SECRET_KEY:?LEARNIO_SECRET_KEY must be set}
+      - LEARNIO_JWT_SECRET_KEY=${LEARNIO_JWT_SECRET_KEY:?LEARNIO_JWT_SECRET_KEY must be set}
+      - LEARNIO_DATABASE_URL=${LEARNIO_DATABASE_URL:?LEARNIO_DATABASE_URL must be set}
       - LEARNIO_RATELIMIT_DEFAULT=200 per day;50 per hour
-      - LEARNIO_DOSSIER_UPLOADS=/app/uploads
-      - LEARNIO_TAILLE_MAX_FICHIER_MO=16
+      - LEARNIO_UPLOAD_DIR=/app/uploads
+      - LEARNIO_MAX_FILE_SIZE_MB=16
     volumes:
       - app_data:/app/data
       - app_uploads:/app/uploads
