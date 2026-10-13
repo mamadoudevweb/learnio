@@ -2,9 +2,10 @@ from typing import Any
 from uuid import UUID
 
 from flask import Blueprint, current_app, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from src.core.routes.envelope import ok
+from src.core.security import get_current_actor
 from src.domains.library.repositories.filters import DocumentFilter
 from src.domains.library.routes.v1.schemas.document_schema import (
     DocumentCreateSchema,
@@ -16,22 +17,12 @@ from src.domains.library.routes.v1.schemas.document_schema import (
 document_bp = Blueprint("documents", __name__, url_prefix="/api/v1/documents")
 
 
-class MockActor:
-    """Acteur pour vérification d'autorisation."""
-
-    def __init__(self, user_id: str):
-        self.user_id = user_id
-
-    def has_permission(self, permission: str) -> bool:
-        return True
-
-
 @document_bp.route("", methods=["GET"])
 @jwt_required()
 def list_documents() -> tuple[Any, int]:
     """Liste les documents de la bibliothèque avec filtres et pagination."""
     query_data = DocumentListQuerySchema(**request.args)
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     filter = DocumentFilter(
@@ -54,7 +45,7 @@ def list_documents() -> tuple[Any, int]:
 @jwt_required()
 def get_document(document_id: UUID) -> tuple[Any, int]:
     """Récupère un document par son identifiant."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.library.document_service.get_document(actor, document_id)
@@ -67,7 +58,7 @@ def get_document(document_id: UUID) -> tuple[Any, int]:
 def create_document() -> tuple[Any, int]:
     """Enregistre un document dans la bibliothèque."""
     payload = DocumentCreateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.library.document_service.create_document(
@@ -94,7 +85,7 @@ def create_document() -> tuple[Any, int]:
 def update_document(document_id: UUID) -> tuple[Any, int]:
     """Met à jour les métadonnées d'un document."""
     payload = DocumentUpdateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.library.document_service.update_document(
@@ -115,7 +106,7 @@ def update_document(document_id: UUID) -> tuple[Any, int]:
 @jwt_required()
 def delete_document(document_id: UUID) -> tuple[Any, int]:
     """Supprime un document de la bibliothèque."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     domain_service.library.document_service.delete_document(actor, document_id)

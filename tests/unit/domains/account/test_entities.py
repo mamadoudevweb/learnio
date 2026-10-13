@@ -1,7 +1,22 @@
 from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
-from src.domains.account.auth.entities import (
+from src.domains.account.entities import (
+    Account,
+    AccountCreated,
+    AccountRoleAssigned,
+    AccountRoleRemoved,
+    AccountUpdated,
+)
+from src.domains.account.subs.access_controle.entities import (
+    Permission,
+    PermissionAssignedToRole,
+    PermissionCreated,
+    PermissionRevokedFromRole,
+    Role,
+    RoleCreated,
+)
+from src.domains.account.subs.auth.entities import (
     Credential,
     CredentialCreated,
     CredentialReset,
@@ -11,21 +26,6 @@ from src.domains.account.auth.entities import (
     Session,
     SessionCreated,
     SessionRevoked,
-)
-from src.domains.account.entities import (
-    Account,
-    AccountCreated,
-    AccountRoleAssigned,
-    AccountRoleRemoved,
-    AccountUpdated,
-)
-from src.domains.account.rbac.entities import (
-    Permission,
-    PermissionAssignedToRole,
-    PermissionCreated,
-    PermissionRevokedFromRole,
-    Role,
-    RoleCreated,
 )
 
 # ---------------------------------------------------------------------------

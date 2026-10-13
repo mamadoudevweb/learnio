@@ -2,9 +2,10 @@ from typing import Any
 from uuid import UUID
 
 from flask import Blueprint, current_app, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from src.core.routes.envelope import ok
+from src.core.security import get_current_actor
 from src.domains.curriculum.repositories.filters import ChapterFilter
 from src.domains.curriculum.routes.v1.schemas.chapter_schema import (
     ChapterCreateSchema,
@@ -16,22 +17,12 @@ from src.domains.curriculum.routes.v1.schemas.chapter_schema import (
 chapter_bp = Blueprint("chapters", __name__, url_prefix="/api/v1/chapters")
 
 
-class MockActor:
-    """Acteur simulé pour la V1."""
-
-    def __init__(self, user_id: str):
-        self.user_id = user_id
-
-    def has_permission(self, permission: str) -> bool:
-        return True
-
-
 @chapter_bp.route("", methods=["GET"])
 @jwt_required()
 def list_chapters() -> tuple[Any, int]:
     """Liste les chapitres."""
     query_data = ChapterListQuerySchema(**request.args)
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     filter = ChapterFilter(
@@ -49,7 +40,7 @@ def list_chapters() -> tuple[Any, int]:
 @jwt_required()
 def get_chapter(chapter_id: UUID) -> tuple[Any, int]:
     """Récupère un chapitre par son ID."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.chapter_service.get_chapter(actor, chapter_id)
@@ -62,7 +53,7 @@ def get_chapter(chapter_id: UUID) -> tuple[Any, int]:
 def create_chapter() -> tuple[Any, int]:
     """Crée un nouveau chapitre."""
     payload = ChapterCreateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.chapter_service.create_chapter(
@@ -81,7 +72,7 @@ def create_chapter() -> tuple[Any, int]:
 def update_chapter(chapter_id: UUID) -> tuple[Any, int]:
     """Met à jour un chapitre."""
     payload = ChapterUpdateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.chapter_service.update_chapter(
@@ -99,7 +90,7 @@ def update_chapter(chapter_id: UUID) -> tuple[Any, int]:
 @jwt_required()
 def delete_chapter(chapter_id: UUID) -> tuple[Any, int]:
     """Supprime un chapitre."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     domain_service.curriculum.chapter_service.delete_chapter(actor, chapter_id)

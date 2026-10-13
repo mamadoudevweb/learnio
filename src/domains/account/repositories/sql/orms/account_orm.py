@@ -10,7 +10,7 @@ from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, String, Tabl
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
-from src.domains.account.rbac.repositories.sql.orms.rbac_orms import (
+from src.domains.account.subs.access_controle.repositories.sql.orms.rbac_orms import (
     RoleOrm,  # noqa: F401
 )
 

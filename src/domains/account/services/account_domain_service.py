@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 
-from src.domains.account.auth.services.authentication_service import (
+from src.domains.account.services.account_service import AccountService
+from src.domains.account.subs.access_controle.services.permission_service import (
+    PermissionService,
+)
+from src.domains.account.subs.access_controle.services.role_service import RoleService
+from src.domains.account.subs.auth.services.authentication_service import (
     AuthenticationService,
 )
-from src.domains.account.rbac.services.permission_service import PermissionService
-from src.domains.account.rbac.services.role_service import RoleService
-from src.domains.account.services.account_service import AccountService
 
 
 @dataclass(kw_only=True)
 class AccountDomainService:
-    """Façade du domaine Account agrégeant ses services et sous-domaines (auth, rbac)."""
+    """Façade du domaine Account agrégeant ses services et sous-domaines (auth, access_controle)."""
 
     account_service: AccountService
     authentication_service: AuthenticationService

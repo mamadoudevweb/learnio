@@ -1,19 +1,19 @@
 """Exceptions for the account domain and its subdomains."""
 
 from src.core.errors import AppError, NotFoundError
-from src.domains.account.auth.exceptions import (
+from src.domains.account.subs.access_controle.exceptions import (
+    PermissionAlreadyExistsError,
+    PermissionNotFoundError,
+    RoleAlreadyExistsError,
+    RoleNotFoundError,
+)
+from src.domains.account.subs.auth.exceptions import (
     CredentialNotFoundError,
     EmailAlreadyExistsError,
     InvalidCredentialsError,
     ResetTokenExpiredOrInvalidError,
     SessionExpiredError,
     SessionNotFoundError,
-)
-from src.domains.account.rbac.exceptions import (
-    PermissionAlreadyExistsError,
-    PermissionNotFoundError,
-    RoleAlreadyExistsError,
-    RoleNotFoundError,
 )
 
 

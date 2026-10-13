@@ -2,10 +2,10 @@ from typing import Any
 from uuid import UUID
 
 from flask import Blueprint, current_app, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from src.core.routes.envelope import ok
-from src.domains.account.rbac.routes.v1.role_routes import JwtActor
+from src.core.security import JwtActor, get_current_actor
 from src.domains.account.repositories.filters import AccountFilter
 from src.domains.account.routes.v1.schemas.account_schemas import (
     AccountCreateSchema,
@@ -17,7 +17,7 @@ account_bp = Blueprint("accounts", __name__, url_prefix="/api/v1/accounts")
 
 
 def _actor() -> JwtActor:
-    return JwtActor(get_jwt_identity())
+    return get_current_actor()
 
 
 @account_bp.route("", methods=["GET"])

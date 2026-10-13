@@ -12,8 +12,10 @@ from flask_jwt_extended import JWTManager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.app.docs import register_docs
 from src.app.domain_service_builder import build_domain_services
 from src.app.permissions_seed import seed_permissions
+from src.app.roles_seed import seed_admin_role
 from src.app.routes import register_routes
 from src.app.uow import REPOSITORY_CLASSES
 from src.core.config import load_config
@@ -48,11 +50,13 @@ def create_app(env: str | None = None) -> Flask:
     )
 
     domain_services = build_domain_services(uow_factory)
-    # Seed default permissions before handling any requests
+    # Seed default permissions and admin role before handling any requests
     seed_permissions(uow_factory)
+    seed_admin_role(uow_factory)
     app.extensions["domain_service"] = domain_services
 
     register_routes(app)
+    register_docs(app)
 
     @app.errorhandler(AppError)
     def handle_app_error(error: AppError) -> tuple[Any, int]:

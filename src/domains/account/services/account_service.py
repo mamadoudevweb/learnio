@@ -5,9 +5,9 @@ from src.core.entities import ServiceResult
 from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.account.entities.account import Account
 from src.domains.account.exceptions import AccountNotFoundError, RoleNotFoundError
-from src.domains.account.rbac.repositories.sql import RoleRepository
 from src.domains.account.repositories.filters import AccountFilter
 from src.domains.account.repositories.sql import AccountRepository
+from src.domains.account.subs.access_controle.repositories.sql import RoleRepository
 
 
 class AccountService(BaseService):

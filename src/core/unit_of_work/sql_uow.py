@@ -9,7 +9,7 @@ Le dictionnaire ``REPOSITORY_CLASSES`` est injecté depuis
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Self
 
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -64,7 +64,7 @@ class SqlUnitOfWork:
 
     # --- Context manager ---
 
-    def __enter__(self) -> SqlUnitOfWork:
+    def __enter__(self) -> Self:
         self._session = self._session_factory()
         self._repositories.clear()
         self._tracked_entities.clear()

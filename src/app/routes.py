@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from flask import Flask, jsonify
 
-from src.domains.account.auth.routes.v1 import auth_bp
-from src.domains.account.rbac.routes.v1 import permission_bp, role_bp
 from src.domains.account.routes.v1 import account_bp
+from src.domains.account.subs.access_controle.routes.v1 import permission_bp, role_bp
+from src.domains.account.subs.auth.routes.v1 import auth_bp
 from src.domains.curriculum.routes.v1.chapter_routes import chapter_bp
 from src.domains.curriculum.routes.v1.lesson_routes import lesson_bp
 from src.domains.curriculum.routes.v1.subject_routes import subject_bp

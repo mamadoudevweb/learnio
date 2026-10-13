@@ -8,9 +8,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.domains.account.auth.services import AuthenticationService
-from src.domains.account.rbac.services import PermissionService, RoleService
 from src.domains.account.services import AccountDomainService, AccountService
+from src.domains.account.subs.access_controle.services import (
+    PermissionService,
+    RoleService,
+)
+from src.domains.account.subs.auth.services import AuthenticationService
 from src.domains.curriculum.services import CurriculumDomainService
 from src.domains.curriculum.services.chapter_service import ChapterService
 from src.domains.curriculum.services.lesson_service import LessonService

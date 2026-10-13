@@ -8,16 +8,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.domains.account.auth.repositories.sql import (
+from src.domains.account.repositories.sql import AccountRepository
+from src.domains.account.subs.access_controle.repositories.sql import (
+    PermissionRepository,
+    RoleRepository,
+)
+from src.domains.account.subs.auth.repositories.sql import (
     CredentialRepository,
     CredentialResetRepository,
     SessionRepository,
 )
-from src.domains.account.rbac.repositories.sql import (
-    PermissionRepository,
-    RoleRepository,
-)
-from src.domains.account.repositories.sql import AccountRepository
 from src.domains.curriculum.repositories.sql import (
     ChapterRepository,
     LessonRepository,

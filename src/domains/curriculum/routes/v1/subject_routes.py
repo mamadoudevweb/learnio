@@ -2,9 +2,10 @@ from typing import Any
 from uuid import UUID
 
 from flask import Blueprint, current_app, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from src.core.routes.envelope import ok
+from src.core.security import get_current_actor
 from src.domains.curriculum.repositories.filters import SubjectFilter
 from src.domains.curriculum.routes.v1.schemas.subject_schema import (
     SubjectCreateSchema,
@@ -16,22 +17,12 @@ from src.domains.curriculum.routes.v1.schemas.subject_schema import (
 subject_bp = Blueprint("subjects", __name__, url_prefix="/api/v1/subjects")
 
 
-class MockActor:
-    """Acteur simulé pour la V1 sans authentification complexe."""
-
-    def __init__(self, user_id: str):
-        self.user_id = user_id
-
-    def has_permission(self, permission: str) -> bool:
-        return True
-
-
 @subject_bp.route("", methods=["GET"])
 @jwt_required()
 def list_subjects() -> tuple[Any, int]:
     """Liste les matières scolaires."""
     query_data = SubjectListQuerySchema(**request.args)
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     filter = SubjectFilter(
@@ -50,7 +41,7 @@ def list_subjects() -> tuple[Any, int]:
 @jwt_required()
 def get_subject(subject_id: UUID) -> tuple[Any, int]:
     """Récupère une matière par son ID."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.subject_service.get_subject(actor, subject_id)
@@ -63,7 +54,7 @@ def get_subject(subject_id: UUID) -> tuple[Any, int]:
 def create_subject() -> tuple[Any, int]:
     """Crée une nouvelle matière."""
     payload = SubjectCreateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.subject_service.create_subject(
@@ -78,7 +69,7 @@ def create_subject() -> tuple[Any, int]:
 def update_subject(subject_id: UUID) -> tuple[Any, int]:
     """Met à jour une matière existante."""
     payload = SubjectUpdateSchema.model_validate(request.get_json(force=True))
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     result = domain_service.curriculum.subject_service.update_subject(
@@ -96,7 +87,7 @@ def update_subject(subject_id: UUID) -> tuple[Any, int]:
 @jwt_required()
 def delete_subject(subject_id: UUID) -> tuple[Any, int]:
     """Supprime une matière."""
-    actor = MockActor(get_jwt_identity())
+    actor = get_current_actor()
     domain_service = current_app.extensions["domain_service"]
 
     domain_service.curriculum.subject_service.delete_subject(actor, subject_id)
