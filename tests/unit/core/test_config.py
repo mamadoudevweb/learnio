@@ -102,6 +102,33 @@ def test_production_config_smtp_valid():
     assert flask_cfg["EMAIL_BACKEND"] == "smtp"
 
 
+def test_production_config_gmail_autodetect():
+    config = ProductionConfig(
+        SECRET_KEY="s" * 32,
+        JWT_SECRET_KEY="j" * 32,
+        DATABASE_URL="postgresql://user:pass@localhost:5432/learnio",
+        EMAIL_BACKEND="smtp",
+        SMTP_USER="dev@gmail.com",
+        SMTP_PASSWORD="secretpassword",
+    )
+    assert config.SMTP_HOST == "smtp.gmail.com"
+
+
+def test_production_config_from_env_without_prefix(monkeypatch):
+    monkeypatch.setenv("SECRET_KEY", "s" * 32)
+    monkeypatch.setenv("JWT_SECRET_KEY", "j" * 32)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://db.render.com:5432/learnio")
+    monkeypatch.setenv("SMTP_USER", "user@gmail.com")
+    monkeypatch.setenv("SMTP_PASSWORD", "app_password_here")
+
+    config = ProductionConfig()
+    assert config.SECRET_KEY == "s" * 32
+    assert config.JWT_SECRET_KEY == "j" * 32
+    assert config.DATABASE_URL == "postgresql://db.render.com:5432/learnio"
+    assert config.SMTP_HOST == "smtp.gmail.com"
+    assert config.SMTP_USER == "user@gmail.com"
+
+
 def test_config_builder_development():
     config = (
         ConfigBuilder("development")

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Self
 
-from pydantic import model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings
 
 from src.core.builder import BaseBuilder
@@ -18,33 +18,87 @@ class BaseConfig(BaseSettings):
     """Configuration de base, commune à tous les environnements."""
 
     # --- Application ---
-    APP_NAME: str = "learnio"
-    DEBUG: bool = False
-    SECRET_KEY: str = "change-me-in-production-at-least-32-chars-long"
-    JWT_SECRET_KEY: str = "change-me-too-in-production-at-least-32-chars-long"
+    APP_NAME: str = Field(
+        default="learnio",
+        validation_alias=AliasChoices("LEARNIO_APP_NAME", "APP_NAME"),
+    )
+    DEBUG: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("LEARNIO_DEBUG", "DEBUG"),
+    )
+    SECRET_KEY: str = Field(
+        default="change-me-in-production-at-least-32-chars-long",
+        validation_alias=AliasChoices("LEARNIO_SECRET_KEY", "SECRET_KEY"),
+    )
+    JWT_SECRET_KEY: str = Field(
+        default="change-me-too-in-production-at-least-32-chars-long",
+        validation_alias=AliasChoices("LEARNIO_JWT_SECRET_KEY", "JWT_SECRET_KEY"),
+    )
 
     # --- Base de données ---
-    DATABASE_URL: str = "sqlite:///learnio.db"
+    DATABASE_URL: str = Field(
+        default="sqlite:///learnio.db",
+        validation_alias=AliasChoices("LEARNIO_DATABASE_URL", "DATABASE_URL"),
+    )
 
     # --- Limitation de débit ---
-    RATELIMIT_DEFAULT: str = "200 per hour"
+    RATELIMIT_DEFAULT: str = Field(
+        default="200 per hour",
+        validation_alias=AliasChoices("LEARNIO_RATELIMIT_DEFAULT", "RATELIMIT_DEFAULT"),
+    )
 
     # --- Stockage fichiers ---
-    UPLOAD_DIR: str = "uploads"
-    MAX_FILE_SIZE_MB: int = 25
+    UPLOAD_DIR: str = Field(
+        default="uploads",
+        validation_alias=AliasChoices("LEARNIO_UPLOAD_DIR", "UPLOAD_DIR"),
+    )
+    MAX_FILE_SIZE_MB: int = Field(
+        default=25,
+        validation_alias=AliasChoices("LEARNIO_MAX_FILE_SIZE_MB", "MAX_FILE_SIZE_MB"),
+    )
 
     # --- Email & Notifications ---
-    EMAIL_BACKEND: str = "console"
-    EMAIL_FROM: str = "noreply@learnio.app"
-    SMTP_HOST: str = "localhost"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_USE_TLS: bool = True
-    SMTP_USE_SSL: bool = False
+    EMAIL_BACKEND: str = Field(
+        default="console",
+        validation_alias=AliasChoices("LEARNIO_EMAIL_BACKEND", "EMAIL_BACKEND"),
+    )
+    EMAIL_FROM: str = Field(
+        default="noreply@learnio.app",
+        validation_alias=AliasChoices("LEARNIO_EMAIL_FROM", "EMAIL_FROM"),
+    )
+    SMTP_HOST: str = Field(
+        default="localhost",
+        validation_alias=AliasChoices("LEARNIO_SMTP_HOST", "SMTP_HOST"),
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        validation_alias=AliasChoices("LEARNIO_SMTP_PORT", "SMTP_PORT"),
+    )
+    SMTP_USER: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEARNIO_SMTP_USER", "SMTP_USER"),
+    )
+    SMTP_PASSWORD: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEARNIO_SMTP_PASSWORD", "SMTP_PASSWORD"),
+    )
+    SMTP_USE_TLS: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("LEARNIO_SMTP_USE_TLS", "SMTP_USE_TLS"),
+    )
+    SMTP_USE_SSL: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("LEARNIO_SMTP_USE_SSL", "SMTP_USE_SSL"),
+    )
 
     # --- Sécurité & Tokens ---
-    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 15
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=15,
+        validation_alias=AliasChoices(
+            "LEARNIO_PASSWORD_RESET_TOKEN_EXPIRE_MINUTES",
+            "PASSWORD_RESET_TOKEN_EXPIRE_MINUTES",
+        ),
+    )
 
     model_config = {
         "env_prefix": "LEARNIO_",
@@ -99,29 +153,58 @@ class ProductionConfig(BaseConfig):
     d'environnement sont manquantes.
     """
 
-    SECRET_KEY: str  # type: ignore[assignment]
-    JWT_SECRET_KEY: str  # type: ignore[assignment]
-    DATABASE_URL: str  # type: ignore[assignment]
-    EMAIL_BACKEND: str = "smtp"
-    SMTP_HOST: str = ""
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
+    SECRET_KEY: str = Field(
+        validation_alias=AliasChoices("LEARNIO_SECRET_KEY", "SECRET_KEY")
+    )
+    JWT_SECRET_KEY: str = Field(
+        validation_alias=AliasChoices("LEARNIO_JWT_SECRET_KEY", "JWT_SECRET_KEY")
+    )
+    DATABASE_URL: str = Field(
+        validation_alias=AliasChoices("LEARNIO_DATABASE_URL", "DATABASE_URL")
+    )
+    EMAIL_BACKEND: str = Field(
+        default="smtp",
+        validation_alias=AliasChoices("LEARNIO_EMAIL_BACKEND", "EMAIL_BACKEND"),
+    )
+    SMTP_HOST: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEARNIO_SMTP_HOST", "SMTP_HOST"),
+    )
+    SMTP_USER: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEARNIO_SMTP_USER", "SMTP_USER"),
+    )
+    SMTP_PASSWORD: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEARNIO_SMTP_PASSWORD", "SMTP_PASSWORD"),
+    )
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
         if self.SECRET_KEY == self.JWT_SECRET_KEY:
             raise ValueError("SECRET_KEY et JWT_SECRET_KEY doivent être distincts.")
         if self.EMAIL_BACKEND == "smtp":
+            # Détection automatique de l'hôte SMTP si un fournisseur d'email courant est utilisé
+            if not self.SMTP_HOST and self.SMTP_USER:
+                user_lower = self.SMTP_USER.lower().strip()
+                if user_lower.endswith(("@gmail.com", "@googlemail.com")):
+                    self.SMTP_HOST = "smtp.gmail.com"
+                elif user_lower.endswith(("@outlook.com", "@hotmail.com")):
+                    self.SMTP_HOST = "smtp.office365.com"
+                elif user_lower.endswith("@yahoo.com"):
+                    self.SMTP_HOST = "smtp.mail.yahoo.com"
+
             missing = []
             if not self.SMTP_HOST:
-                missing.append("SMTP_HOST")
+                missing.append("SMTP_HOST (ou LEARNIO_SMTP_HOST)")
             if not self.SMTP_USER:
-                missing.append("SMTP_USER")
+                missing.append("SMTP_USER (ou LEARNIO_SMTP_USER)")
             if not self.SMTP_PASSWORD:
-                missing.append("SMTP_PASSWORD")
+                missing.append("SMTP_PASSWORD (ou LEARNIO_SMTP_PASSWORD)")
             if missing:
                 raise ValueError(
-                    f"Les variables SMTP suivantes sont requises en production : {', '.join(missing)}"
+                    f"Les variables SMTP suivantes sont requises en production : {', '.join(missing)}. "
+                    "Note : pour Gmail, spécifiez SMTP_HOST='smtp.gmail.com' ou configurez SMTP_USER avec votre adresse @gmail.com."
                 )
         return self
 
