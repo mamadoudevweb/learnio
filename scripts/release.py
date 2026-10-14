@@ -30,7 +30,10 @@ def get_current_version() -> str:
     content = version_file.read_text(encoding="utf-8")
     match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
     if not match:
-        print(f"[ERREUR] Impossible de trouver __version__ dans {version_file}", file=sys.stderr)
+        print(
+            f"[ERREUR] Impossible de trouver __version__ dans {version_file}",
+            file=sys.stderr,
+        )
         sys.exit(1)
     return match.group(1)
 
@@ -86,8 +89,8 @@ def main() -> None:
         run_command(["git", "push", "upstream", tag_name])
         print(f"\nRelease {tag_name} publiée avec succès !")
     else:
-        print(f"\n[5/5] Pour créer et pousser le tag git manuellement :")
-        print(f"  git tag -a {tag_name} -m \"Release {tag_name}\"")
+        print("\n[5/5] Pour créer et pousser le tag git manuellement :")
+        print(f'  git tag -a {tag_name} -m "Release {tag_name}"')
         print(f"  git push upstream {tag_name}")
 
     print("\nValidation de la release terminée avec succès !")

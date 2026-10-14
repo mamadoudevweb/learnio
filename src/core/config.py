@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Self
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 from src.core.builder import BaseBuilder
@@ -40,6 +40,14 @@ class BaseConfig(BaseSettings):
         default="sqlite:///learnio.db",
         validation_alias=AliasChoices("LEARNIO_DATABASE_URL", "DATABASE_URL"),
     )
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: Any) -> Any:
+        """Normalise l'URL de base de données (compatibilité Render / Heroku / Supabase)."""
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
 
     # --- Limitation de débit ---
     RATELIMIT_DEFAULT: str = Field(
@@ -113,6 +121,8 @@ class BaseConfig(BaseSettings):
             "SECRET_KEY": self.SECRET_KEY,
             "JWT_SECRET_KEY": self.JWT_SECRET_KEY,
             "SQLALCHEMY_DATABASE_URI": self.DATABASE_URL,
+            "SQLALCHEMY_ECHO": self.DEBUG,
+            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
             "RATELIMIT_DEFAULT": self.RATELIMIT_DEFAULT,
             "MAX_CONTENT_LENGTH": self.MAX_FILE_SIZE_MB * 1024 * 1024,
             "UPLOAD_DIR": self.UPLOAD_DIR,

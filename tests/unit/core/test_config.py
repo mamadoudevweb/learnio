@@ -129,6 +129,23 @@ def test_production_config_from_env_without_prefix(monkeypatch):
     assert config.SMTP_USER == "user@gmail.com"
 
 
+def test_database_url_normalization_postgres_to_postgresql():
+    config = ProductionConfig(
+        SECRET_KEY="s" * 32,
+        JWT_SECRET_KEY="j" * 32,
+        DATABASE_URL="postgres://user:pass@render.com:5432/learnio",
+        EMAIL_BACKEND="console",
+    )
+    assert config.DATABASE_URL == "postgresql://user:pass@render.com:5432/learnio"
+    flask_cfg = config.to_flask_config()
+    assert (
+        flask_cfg["SQLALCHEMY_DATABASE_URI"]
+        == "postgresql://user:pass@render.com:5432/learnio"
+    )
+    assert flask_cfg["SQLALCHEMY_ECHO"] is False
+    assert flask_cfg["SQLALCHEMY_TRACK_MODIFICATIONS"] is False
+
+
 def test_config_builder_development():
     config = (
         ConfigBuilder("development")
