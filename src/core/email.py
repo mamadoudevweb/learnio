@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import logging
 import smtplib
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -29,35 +30,39 @@ class EmailMessage:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-@runtime_checkable
-class EmailSender(Protocol):
-    """Protocole pour l'envoi d'emails."""
+class EmailSender(ABC):
+    """Classe de base abstraite pour l'envoi d'emails.
 
-    def send(self, message: EmailMessage) -> None: ...
-
-
-class InMemoryEmailSender:
-    """Expéditeur d'emails en mémoire pour le développement et les tests."""
+    Toutes les implémentations concrètes (InMemory, Console, SMTP)
+    héritent de cette classe.
+    """
 
     def __init__(self) -> None:
         self._outbox: list[EmailMessage] = []
 
     @property
     def outbox(self) -> list[EmailMessage]:
-        """Retourne la liste des messages envoyés."""
+        """Retourne la liste des messages enregistrés dans la boîte d'envoi."""
         return self._outbox
-
-    def send(self, message: EmailMessage) -> None:
-        """Enregistre le message dans la boîte d'envoi."""
-        logger.debug("Email envoyé à %s : %s", message.to, message.subject)
-        self._outbox.append(message)
 
     def clear(self) -> None:
         """Vide la boîte d'envoi."""
         self._outbox.clear()
 
+    def _record(self, message: EmailMessage) -> None:
+        """Enregistre le message dans la boîte d'envoi pour suivi et testabilité."""
+        self._outbox.append(message)
 
-class ConsoleEmailSender:
+    @abstractmethod
+    def send(self, message: EmailMessage) -> None:
+        """Envoie un message email."""
+        ...
+
+
+BaseEmailSender = EmailSender
+
+
+class ConsoleEmailSender(EmailSender):
     """Expéditeur affichant les emails dans la console ou les logs."""
 
     def send(self, message: EmailMessage) -> None:
@@ -68,9 +73,10 @@ class ConsoleEmailSender:
             message.subject,
             message.body,
         )
+        self._record(message)
 
 
-class SmtpEmailSender:
+class SmtpEmailSender(EmailSender):
     """Expéditeur d'emails via le protocole SMTP."""
 
     def __init__(
@@ -85,6 +91,7 @@ class SmtpEmailSender:
         from_email: str = "noreply@learnio.app",
         timeout: float = 10.0,
     ) -> None:
+        super().__init__()
         self._host = host
         self._port = port
         self._user = user
@@ -108,6 +115,7 @@ class SmtpEmailSender:
 
     def send(self, message: EmailMessage) -> None:
         """Envoie le message email via le serveur SMTP configuré."""
+        self._record(message)
         msg = MIMEMultipart("alternative")
         msg["Subject"] = message.subject
         msg["From"] = self._from_email
@@ -158,8 +166,6 @@ def create_email_sender(
 ) -> EmailSender:
     """Instancie un expéditeur d'emails selon le backend demandé."""
     backend_key = backend.lower().strip()
-    if backend_key in ("memory", "in_memory"):
-        return InMemoryEmailSender()
     if backend_key == "console":
         return ConsoleEmailSender()
     if backend_key == "smtp":

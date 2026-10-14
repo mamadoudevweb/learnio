@@ -5,7 +5,7 @@ from typing import Any
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.core.email import EmailSender, InMemoryEmailSender
+from src.core.email import ConsoleEmailSender, EmailSender
 from src.core.entities import ServiceResult, utc_now
 from src.core.services import BaseService
 from src.domains.account.entities.account import Account
@@ -46,7 +46,7 @@ class AuthenticationService(BaseService):
         reset_token_expire_minutes: int = 15,
     ) -> None:
         super().__init__(uow_factory)
-        self._email_sender = email_sender or InMemoryEmailSender()
+        self._email_sender = email_sender or ConsoleEmailSender()
         self._reset_token_expire_minutes = reset_token_expire_minutes
 
     @property

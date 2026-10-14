@@ -20,7 +20,7 @@ from src.app.routes import register_routes
 from src.app.uow import REPOSITORY_CLASSES
 from src.core.config import load_config
 from src.core.database import Base
-from src.core.email import EmailService, create_email_sender
+from src.core.email import EmailSender, EmailService, create_email_sender
 from src.core.errors import AppError
 from src.core.unit_of_work.sql_uow import SqlUnitOfWork, clear_subscribers
 from src.domains.account.event_handlers import register_account_event_handlers
@@ -28,7 +28,10 @@ from src.domains.account.event_handlers import register_account_event_handlers
 logger = logging.getLogger(__name__)
 
 
-def create_app(env: str | None = None) -> Flask:
+def create_app(
+    env: str | None = None,
+    email_sender: EmailSender | None = None,
+) -> Flask:
     """Crée et configure l'application Flask."""
     env = env or os.getenv("LEARNIO_ENV", "development")
     config = load_config(env)
@@ -51,16 +54,17 @@ def create_app(env: str | None = None) -> Flask:
         repository_classes=REPOSITORY_CLASSES,
     )
 
-    email_sender = create_email_sender(
-        backend=app.config.get("EMAIL_BACKEND", "console"),
-        from_email=app.config.get("EMAIL_FROM", "noreply@learnio.app"),
-        smtp_host=app.config.get("SMTP_HOST", "localhost"),
-        smtp_port=app.config.get("SMTP_PORT", 587),
-        smtp_user=app.config.get("SMTP_USER", ""),
-        smtp_password=app.config.get("SMTP_PASSWORD", ""),
-        smtp_use_tls=app.config.get("SMTP_USE_TLS", True),
-        smtp_use_ssl=app.config.get("SMTP_USE_SSL", False),
-    )
+    if email_sender is None:
+        email_sender = create_email_sender(
+            backend=app.config.get("EMAIL_BACKEND", "console"),
+            from_email=app.config.get("EMAIL_FROM", "noreply@learnio.app"),
+            smtp_host=app.config.get("SMTP_HOST", "localhost"),
+            smtp_port=app.config.get("SMTP_PORT", 587),
+            smtp_user=app.config.get("SMTP_USER", ""),
+            smtp_password=app.config.get("SMTP_PASSWORD", ""),
+            smtp_use_tls=app.config.get("SMTP_USE_TLS", True),
+            smtp_use_ssl=app.config.get("SMTP_USE_SSL", False),
+        )
     app.extensions["email_sender"] = email_sender
     email_service = EmailService(sender=email_sender)
     app.extensions["email_service"] = email_service

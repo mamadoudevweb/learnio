@@ -6,11 +6,22 @@ import pytest
 from src.core.email import (
     ConsoleEmailSender,
     EmailMessage,
+    EmailSender,
     EmailService,
-    InMemoryEmailSender,
     SmtpEmailSender,
     create_email_sender,
 )
+from tests.conftest import InMemoryEmailSender
+
+
+def test_email_sender_inheritance():
+    assert issubclass(InMemoryEmailSender, EmailSender)
+    assert issubclass(ConsoleEmailSender, EmailSender)
+    assert issubclass(SmtpEmailSender, EmailSender)
+
+    # Base class cannot be instantiated directly because send is abstract
+    with pytest.raises(TypeError):
+        EmailSender()  # type: ignore[abstract]
 
 
 def test_in_memory_email_sender():
@@ -79,6 +90,10 @@ def test_smtp_email_sender_tls():
         assert sent_mime["From"] == "noreply@test.com"
         assert sent_mime["Subject"] == "SMTP TLS Test"
 
+    # Verifies the message was also recorded in outbox via inheritance
+    assert len(sender.outbox) == 1
+    assert sender.outbox[0].to == "recipient@example.com"
+
 
 def test_smtp_email_sender_ssl():
     sender = SmtpEmailSender(
@@ -106,14 +121,10 @@ def test_smtp_email_sender_ssl():
         mock_server.login.assert_called_once_with("testuser", "testpassword")
         mock_server.send_message.assert_called_once()
 
+    assert len(sender.outbox) == 1
+
 
 def test_create_email_sender_factory():
-    memory = create_email_sender("memory")
-    assert isinstance(memory, InMemoryEmailSender)
-
-    in_memory = create_email_sender("in_memory")
-    assert isinstance(in_memory, InMemoryEmailSender)
-
     console = create_email_sender("console")
     assert isinstance(console, ConsoleEmailSender)
 

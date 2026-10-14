@@ -17,11 +17,14 @@ def test_development_config_defaults():
     assert config.DEBUG is True
     assert config.EMAIL_BACKEND == "console"
     assert config.EMAIL_FROM == "noreply@learnio.app"
+    assert config.SMTP_HOST == "localhost"
     assert config.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES == 15
 
     flask_cfg = config.to_flask_config()
     assert flask_cfg["DEBUG"] is True
     assert flask_cfg["EMAIL_BACKEND"] == "console"
+    assert flask_cfg["SMTP_HOST"] == "localhost"
+    assert flask_cfg["SMTP_PORT"] == 587
     assert flask_cfg["EMAIL_FROM"] == "noreply@learnio.app"
     assert flask_cfg["PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"] == 15
     assert "SECRET_KEY" in flask_cfg

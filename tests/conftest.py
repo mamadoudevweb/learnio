@@ -5,13 +5,23 @@ from sqlalchemy.orm import sessionmaker
 from src.app.domain_service_builder import build_domain_services
 from src.app.factory import create_app
 from src.app.uow import REPOSITORY_CLASSES
+from src.core.email import EmailMessage, EmailSender
 from src.core.unit_of_work.sql_uow import SqlUnitOfWork
+
+
+class InMemoryEmailSender(EmailSender):
+    """Expéditeur d'emails en mémoire dédié aux tests."""
+
+    def send(self, message: EmailMessage) -> None:
+        """Enregistre le message dans la boîte d'envoi."""
+        self._record(message)
 
 
 @pytest.fixture(scope="session")
 def app():
     """Application Flask pour les tests."""
-    app = create_app("testing")
+    email_sender = InMemoryEmailSender()
+    app = create_app("testing", email_sender=email_sender)
     with app.app_context():
         yield app
 

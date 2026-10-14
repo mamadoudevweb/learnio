@@ -44,7 +44,11 @@ class BaseConfig(BaseSettings):
     # --- Sécurité & Tokens ---
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 15
 
-    model_config = {"env_prefix": "LEARNIO_", "env_file": ".env"}
+    model_config = {
+        "env_prefix": "LEARNIO_",
+        "env_file": ".env",
+        "extra": "ignore",
+    }
 
     def to_flask_config(self) -> dict[str, Any]:
         """Convertit la configuration en dictionnaire Flask."""
