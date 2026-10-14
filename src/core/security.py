@@ -23,7 +23,7 @@ def get_current_actor() -> JwtActor:
     try:
         claims = get_jwt()
         perms = set(claims.get("permissions", [])) if "permissions" in claims else None
-    except (RuntimeError, ValueError, KeyError):
+    except RuntimeError, ValueError, KeyError:
         perms = None
     return JwtActor(get_jwt_identity(), permissions=perms)
 

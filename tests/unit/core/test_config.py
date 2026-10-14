@@ -52,7 +52,9 @@ def test_production_config_missing_required_fields():
 
 def test_production_config_identical_secrets_raises_error():
     secret = "a" * 32
-    with pytest.raises(ValueError, match="SECRET_KEY et JWT_SECRET_KEY doivent être distincts"):
+    with pytest.raises(
+        ValueError, match="SECRET_KEY et JWT_SECRET_KEY doivent être distincts"
+    ):
         ProductionConfig(
             SECRET_KEY=secret,
             JWT_SECRET_KEY=secret,
@@ -62,7 +64,9 @@ def test_production_config_identical_secrets_raises_error():
 
 
 def test_production_config_smtp_missing_host_raises_error():
-    with pytest.raises(ValueError, match="Les variables SMTP suivantes sont requises en production"):
+    with pytest.raises(
+        ValueError, match="Les variables SMTP suivantes sont requises en production"
+    ):
         ProductionConfig(
             SECRET_KEY="s" * 32,
             JWT_SECRET_KEY="j" * 32,

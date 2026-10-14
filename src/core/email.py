@@ -136,9 +136,7 @@ class SmtpEmailSender(EmailSender):
                     server.login(self._user, self._password)
                 server.send_message(msg)
         else:
-            with smtplib.SMTP(
-                self._host, self._port, timeout=self._timeout
-            ) as server:
+            with smtplib.SMTP(self._host, self._port, timeout=self._timeout) as server:
                 if self._use_tls:
                     server.starttls()
                 if self._user and self._password:

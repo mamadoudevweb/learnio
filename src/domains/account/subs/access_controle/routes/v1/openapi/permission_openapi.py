@@ -13,7 +13,14 @@ COMPONENTS: dict[str, Any] = {
     "schemas": {
         "Permission": {
             "type": "object",
-            "required": ["id", "domain", "resource", "action", "createdAt", "updatedAt"],
+            "required": [
+                "id",
+                "domain",
+                "resource",
+                "action",
+                "createdAt",
+                "updatedAt",
+            ],
             "properties": {
                 "id": {
                     "type": "string",
@@ -127,7 +134,12 @@ PATHS: dict[str, Any] = {
                     "name": "pageSize",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "integer", "default": 20, "minimum": 1, "maximum": 100},
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100,
+                    },
                     "description": "Number of items per page",
                 },
                 {
@@ -157,7 +169,9 @@ PATHS: dict[str, Any] = {
                     "description": "List of permissions retrieved successfully",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/PermissionListEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/PermissionListEnvelope"
+                            }
                         }
                     },
                 },
@@ -190,7 +204,9 @@ PATHS: dict[str, Any] = {
                     "description": "Permission created or retrieved successfully",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/PermissionEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/PermissionEnvelope"
+                            }
                         }
                     },
                 },
@@ -233,7 +249,9 @@ PATHS: dict[str, Any] = {
                     "description": "Permission details retrieved successfully",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/PermissionEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/PermissionEnvelope"
+                            }
                         }
                     },
                 },

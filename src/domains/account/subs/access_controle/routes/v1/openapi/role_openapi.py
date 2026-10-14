@@ -126,7 +126,12 @@ PATHS: dict[str, Any] = {
                     "name": "pageSize",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "integer", "default": 20, "minimum": 1, "maximum": 100},
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100,
+                    },
                     "description": "Number of items per page",
                 },
                 {

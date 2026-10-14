@@ -285,7 +285,9 @@ PATHS: dict[str, Any] = {
                     "description": "Password reset HTML email sent",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/PasswordResetEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetEnvelope"
+                            }
                         }
                     },
                 },
@@ -328,7 +330,9 @@ PATHS: dict[str, Any] = {
                     "description": "Token is valid",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/TokenValidationEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenValidationEnvelope"
+                            }
                         }
                     },
                 },
@@ -421,7 +425,9 @@ PATHS: dict[str, Any] = {
                     "description": "Reset token is valid",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/TokenValidationEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenValidationEnvelope"
+                            }
                         }
                     },
                 },

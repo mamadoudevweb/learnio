@@ -260,7 +260,12 @@ PATHS: dict[str, Any] = {
                     "name": "pageSize",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "integer", "default": 20, "minimum": 1, "maximum": 100},
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100,
+                    },
                     "description": "Number of items per page",
                 },
                 {
@@ -281,14 +286,20 @@ PATHS: dict[str, Any] = {
                     "name": "documentType",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "string", "enum": ["course", "exercise", "exam", "summary", "other"]},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["course", "exercise", "exam", "summary", "other"],
+                    },
                     "description": "Filter by document type",
                 },
                 {
                     "name": "source",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "string", "enum": ["user", "teacher", "official"]},
+                    "schema": {
+                        "type": "string",
+                        "enum": ["user", "teacher", "official"],
+                    },
                     "description": "Filter by document source",
                 },
                 {
@@ -311,7 +322,9 @@ PATHS: dict[str, Any] = {
                     "description": "List of documents retrieved successfully",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/DocumentListEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/DocumentListEnvelope"
+                            }
                         }
                     },
                 },

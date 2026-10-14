@@ -188,9 +188,7 @@ class AuthenticationService(BaseService):
 
             raw_token = secrets.token_urlsafe(32)
             token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-            expires_at = utc_now() + timedelta(
-                minutes=self._reset_token_expire_minutes
-            )
+            expires_at = utc_now() + timedelta(minutes=self._reset_token_expire_minutes)
 
             reset = CredentialReset.create(
                 credential_id=cred.id,

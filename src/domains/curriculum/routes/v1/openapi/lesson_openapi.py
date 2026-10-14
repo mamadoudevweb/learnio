@@ -141,7 +141,12 @@ PATHS: dict[str, Any] = {
                     "name": "pageSize",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "integer", "default": 20, "minimum": 1, "maximum": 100},
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100,
+                    },
                     "description": "Number of items per page",
                 },
                 {
@@ -157,7 +162,9 @@ PATHS: dict[str, Any] = {
                     "description": "List of lessons retrieved successfully",
                     "content": {
                         "application/json": {
-                            "schema": {"$ref": "#/components/schemas/LessonListEnvelope"}
+                            "schema": {
+                                "$ref": "#/components/schemas/LessonListEnvelope"
+                            }
                         }
                     },
                 },

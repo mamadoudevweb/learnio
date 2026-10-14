@@ -25,7 +25,9 @@ def handle_password_reset_requested(
         )
         return
 
-    logger.info("Envoi d'un email de réinitialisation à %s via EmailService", event.email)
+    logger.info(
+        "Envoi d'un email de réinitialisation à %s via EmailService", event.email
+    )
     email_service.send_password_reset_email(to=event.email, token=event.token)
 
 
