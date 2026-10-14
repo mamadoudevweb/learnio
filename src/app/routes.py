@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from flask import Flask, jsonify
 
+from src.__version__ import __version__
 from src.domains.account.routes.v1 import account_bp
 from src.domains.account.subs.access_controle.routes.v1 import permission_bp, role_bp
 from src.domains.account.subs.auth.routes.v1 import auth_bp
@@ -19,7 +20,7 @@ def register_routes(app: Flask) -> None:
     @app.get("/api/v1/health")
     def health_check() -> tuple[object, int]:
         """Expose a lightweight unauthenticated liveness check."""
-        return jsonify({"status": "ok"}), 200
+        return jsonify({"status": "ok", "version": __version__}), 200
 
     app.register_blueprint(subject_bp)
     app.register_blueprint(chapter_bp)

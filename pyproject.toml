@@ -1,13 +1,42 @@
 [project]
 name = "learnio"
 version = "0.1.0"
-description = "Add your description here"
+description = "Modern LMS backend API built with Flask, Domain-Driven Design, Clean Architecture, and Builder Pattern"
 readme = "README.md"
 requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "Mamadou", email = "mamadou@example.com" },
+]
+keywords = [
+    "flask",
+    "api",
+    "lms",
+    "learning-management-system",
+    "domain-driven-design",
+    "clean-architecture",
+    "builder-pattern",
+    "unit-of-work",
+    "jwt",
+    "rbac",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Flask",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Education",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
 dependencies = [
     "apscheduler>=3.11.3",
     "flask>=3.1.3",
     "flask-jwt-extended>=4.7.4",
+    "gunicorn>=23.0.0",
     "marshmallow>=4.3.1",
     "marshmallow-dataclass>=8.7.1",
     "marshmallow-sqlalchemy>=1.5.0",
@@ -15,6 +44,12 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "sqlalchemy>=2.1.4",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mamadoudevweb/learnio"
+Repository = "https://github.com/mamadoudevweb/learnio"
+Issues = "https://github.com/mamadoudevweb/learnio/issues"
+Documentation = "https://github.com/mamadoudevweb/learnio#readme"
 
 [dependency-groups]
 dev = [
