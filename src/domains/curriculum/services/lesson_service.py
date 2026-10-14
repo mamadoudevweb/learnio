@@ -5,7 +5,6 @@ from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.curriculum.entities import Lesson
 from src.domains.curriculum.exceptions import LessonNotFoundError
 from src.domains.curriculum.repositories.filters import LessonFilter
-from src.domains.curriculum.repositories.sql import LessonRepository
 
 
 class LessonService(BaseService):
@@ -17,7 +16,7 @@ class LessonService(BaseService):
         self._authorize(actor, "curriculum", "lesson", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(LessonRepository)
+            repo = uow.get_repository("LessonRepository")
             lesson = repo.get(lesson_id)
             if not lesson:
                 raise LessonNotFoundError(f"Leçon {lesson_id} introuvable")
@@ -29,7 +28,7 @@ class LessonService(BaseService):
         self._authorize(actor, "curriculum", "lesson", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(LessonRepository)
+            repo = uow.get_repository("LessonRepository")
             lessons = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=lessons, meta={"total": count})
@@ -49,7 +48,7 @@ class LessonService(BaseService):
         )
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(LessonRepository)
+            repo = uow.get_repository("LessonRepository")
             repo.add(lesson)
             uow.track(lesson)
             return ServiceResult(data=lesson)
@@ -65,7 +64,7 @@ class LessonService(BaseService):
         self._authorize(actor, "curriculum", "lesson", "update")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(LessonRepository)
+            repo = uow.get_repository("LessonRepository")
             lesson = repo.get(lesson_id)
             if not lesson:
                 raise LessonNotFoundError(f"Leçon {lesson_id} introuvable")
@@ -87,7 +86,7 @@ class LessonService(BaseService):
         self._authorize(actor, "curriculum", "lesson", "delete")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(LessonRepository)
+            repo = uow.get_repository("LessonRepository")
             lesson = repo.get(lesson_id)
             if not lesson:
                 raise LessonNotFoundError(f"Leçon {lesson_id} introuvable")

@@ -5,7 +5,6 @@ from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.curriculum.entities import Subject
 from src.domains.curriculum.exceptions import SubjectNotFoundError
 from src.domains.curriculum.repositories.filters import SubjectFilter
-from src.domains.curriculum.repositories.sql import SubjectRepository
 
 
 class SubjectService(BaseService):
@@ -17,7 +16,7 @@ class SubjectService(BaseService):
         self._authorize(actor, "curriculum", "subject", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("SubjectRepository")
             subject = repo.get(subject_id)
             if not subject:
                 raise SubjectNotFoundError(f"Matière {subject_id} introuvable")
@@ -29,7 +28,7 @@ class SubjectService(BaseService):
         self._authorize(actor, "curriculum", "subject", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("SubjectRepository")
             subjects = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=subjects, meta={"total": count})
@@ -42,7 +41,7 @@ class SubjectService(BaseService):
         subject = Subject.create(name=name, code=code)
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("SubjectRepository")
             # Todo: check if code already exists if we need uniqueness
             repo.add(subject)
             uow.track(subject)
@@ -59,7 +58,7 @@ class SubjectService(BaseService):
         self._authorize(actor, "curriculum", "subject", "update")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("SubjectRepository")
             subject = repo.get(subject_id)
             if not subject:
                 raise SubjectNotFoundError(f"Matière {subject_id} introuvable")
@@ -81,7 +80,7 @@ class SubjectService(BaseService):
         self._authorize(actor, "curriculum", "subject", "delete")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("SubjectRepository")
             subject = repo.get(subject_id)
             if not subject:
                 raise SubjectNotFoundError(f"Matière {subject_id} introuvable")

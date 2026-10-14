@@ -6,7 +6,6 @@ from src.domains.library.entities.document import Document
 from src.domains.library.entities.enums import DocumentSource, DocumentType
 from src.domains.library.exceptions import DocumentNotFoundError
 from src.domains.library.repositories.filters import DocumentFilter
-from src.domains.library.repositories.sql import DocumentRepository
 
 
 class DocumentService(BaseService):
@@ -18,7 +17,7 @@ class DocumentService(BaseService):
         self._authorize(actor, "library", "document", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(DocumentRepository)
+            repo = uow.get_repository("DocumentRepository")
             document = repo.get(document_id)
             if not document:
                 raise DocumentNotFoundError(f"Document {document_id} introuvable")
@@ -30,7 +29,7 @@ class DocumentService(BaseService):
         self._authorize(actor, "library", "document", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(DocumentRepository)
+            repo = uow.get_repository("DocumentRepository")
             documents = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=documents, meta={"total": count})
@@ -70,7 +69,7 @@ class DocumentService(BaseService):
         )
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(DocumentRepository)
+            repo = uow.get_repository("DocumentRepository")
             repo.add(document)
             uow.track(document)
             return ServiceResult(data=document)
@@ -90,7 +89,7 @@ class DocumentService(BaseService):
         self._authorize(actor, "library", "document", "update")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(DocumentRepository)
+            repo = uow.get_repository("DocumentRepository")
             document = repo.get(document_id)
             if not document:
                 raise DocumentNotFoundError(f"Document {document_id} introuvable")
@@ -115,7 +114,7 @@ class DocumentService(BaseService):
         self._authorize(actor, "library", "document", "delete")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(DocumentRepository)
+            repo = uow.get_repository("DocumentRepository")
             document = repo.get(document_id)
             if not document:
                 raise DocumentNotFoundError(f"Document {document_id} introuvable")

@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.app.domain_service_builder import build_domain_services
 from src.app.factory import create_app
-from src.app.uow import REPOSITORY_CLASSES
+from src.app.uow import REPOSITORY_REGISTRY
 from src.core.email import EmailMessage, EmailSender
 from src.core.unit_of_work.sql_uow import SqlUnitOfWork
 
@@ -69,7 +69,7 @@ def uow_factory(db_session):
     def factory():
         uow = SqlUnitOfWork(
             session_factory=lambda: db_session,
-            repository_classes=REPOSITORY_CLASSES,
+            registry=REPOSITORY_REGISTRY,
         )
         return uow
 

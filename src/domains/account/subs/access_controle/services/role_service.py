@@ -13,10 +13,6 @@ from src.domains.account.subs.access_controle.repositories.filters import (
     PermissionFilter,
     RoleFilter,
 )
-from src.domains.account.subs.access_controle.repositories.sql import (
-    PermissionRepository,
-    RoleRepository,
-)
 
 
 class RoleService(BaseService):
@@ -27,7 +23,7 @@ class RoleService(BaseService):
     ) -> ServiceResult[Role]:
         self._authorize(actor, "account", "role", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(RoleRepository)
+            repo = uow.get_repository("RoleRepository")
             role = repo.get(role_id)
             if not role:
                 raise RoleNotFoundError(f"Rôle {role_id} introuvable")
@@ -38,7 +34,7 @@ class RoleService(BaseService):
     ) -> ServiceResult[list[Role]]:
         self._authorize(actor, "account", "role", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(RoleRepository)
+            repo = uow.get_repository("RoleRepository")
             roles = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=roles, meta={"total": count})
@@ -54,7 +50,7 @@ class RoleService(BaseService):
         self._authorize(actor, "account", "role", "create")
         clean_name = name.strip().lower()
         with self._uow_factory() as uow:
-            repo = uow.get_repository(RoleRepository)
+            repo = uow.get_repository("RoleRepository")
             if repo.get(RoleFilter(name=clean_name)):
                 raise RoleAlreadyExistsError(f"Le rôle '{clean_name}' existe déjà")
             role = Role.create(
@@ -69,8 +65,8 @@ class RoleService(BaseService):
     ) -> ServiceResult[Role]:
         self._authorize(actor, "account", "role", "update")
         with self._uow_factory() as uow:
-            role_repo = uow.get_repository(RoleRepository)
-            perm_repo = uow.get_repository(PermissionRepository)
+            role_repo = uow.get_repository("RoleRepository")
+            perm_repo = uow.get_repository("PermissionRepository")
             role = role_repo.get(role_id)
             if not role:
                 raise RoleNotFoundError(f"Rôle {role_id} introuvable")
@@ -86,7 +82,7 @@ class RoleService(BaseService):
     ) -> ServiceResult[Role]:
         self._authorize(actor, "account", "role", "update")
         with self._uow_factory() as uow:
-            role_repo = uow.get_repository(RoleRepository)
+            role_repo = uow.get_repository("RoleRepository")
             role = role_repo.get(role_id)
             if not role:
                 raise RoleNotFoundError(f"Rôle {role_id} introuvable")
@@ -100,7 +96,7 @@ class RoleService(BaseService):
     ) -> ServiceResult[None]:
         self._authorize(actor, "account", "role", "delete")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(RoleRepository)
+            repo = uow.get_repository("RoleRepository")
             role = repo.get(role_id)
             if not role:
                 raise RoleNotFoundError(f"Rôle {role_id} introuvable")
@@ -121,7 +117,7 @@ class RoleService(BaseService):
         r = resource.strip().lower()
         a = action.strip().lower()
         with self._uow_factory() as uow:
-            perm_repo = uow.get_repository(PermissionRepository)
+            perm_repo = uow.get_repository("PermissionRepository")
             existing = perm_repo.get(PermissionFilter(domain=d, resource=r, action=a))
             if existing:
                 return ServiceResult(data=existing)

@@ -9,9 +9,6 @@ from src.domains.account.subs.access_controle.exceptions import (
 from src.domains.account.subs.access_controle.repositories.filters import (
     PermissionFilter,
 )
-from src.domains.account.subs.access_controle.repositories.sql import (
-    PermissionRepository,
-)
 
 
 class PermissionService(BaseService):
@@ -22,7 +19,7 @@ class PermissionService(BaseService):
     ) -> ServiceResult[Permission]:
         self._authorize(actor, "account", "permission", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(PermissionRepository)
+            repo = uow.get_repository("PermissionRepository")
             perm = repo.get(permission_id)
             if not perm:
                 raise PermissionNotFoundError(f"Permission {permission_id} introuvable")
@@ -33,7 +30,7 @@ class PermissionService(BaseService):
     ) -> ServiceResult[list[Permission]]:
         self._authorize(actor, "account", "permission", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(PermissionRepository)
+            repo = uow.get_repository("PermissionRepository")
             perms = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=perms, meta={"total": count})
@@ -53,7 +50,7 @@ class PermissionService(BaseService):
             action.strip().lower(),
         )
         with self._uow_factory() as uow:
-            repo = uow.get_repository(PermissionRepository)
+            repo = uow.get_repository("PermissionRepository")
             perm = repo.get(PermissionFilter(domain=d, resource=r, action=a))
             if not perm:
                 perm = Permission.create(domain=d, resource=r, action=a)
@@ -66,7 +63,7 @@ class PermissionService(BaseService):
     ) -> ServiceResult[None]:
         self._authorize(actor, "account", "permission", "delete")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(PermissionRepository)
+            repo = uow.get_repository("PermissionRepository")
             perm = repo.get(permission_id)
             if not perm:
                 raise PermissionNotFoundError(f"Permission {permission_id} introuvable")

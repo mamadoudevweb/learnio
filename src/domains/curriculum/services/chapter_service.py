@@ -5,7 +5,6 @@ from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.curriculum.entities import Chapter
 from src.domains.curriculum.exceptions import ChapterNotFoundError
 from src.domains.curriculum.repositories.filters import ChapterFilter
-from src.domains.curriculum.repositories.sql import ChapterRepository
 
 
 class ChapterService(BaseService):
@@ -17,7 +16,7 @@ class ChapterService(BaseService):
         self._authorize(actor, "curriculum", "chapter", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(ChapterRepository)
+            repo = uow.get_repository("ChapterRepository")
             chapter = repo.get(chapter_id)
             if not chapter:
                 raise ChapterNotFoundError(f"Chapitre {chapter_id} introuvable")
@@ -29,7 +28,7 @@ class ChapterService(BaseService):
         self._authorize(actor, "curriculum", "chapter", "read")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(ChapterRepository)
+            repo = uow.get_repository("ChapterRepository")
             chapters = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=chapters, meta={"total": count})
@@ -49,7 +48,7 @@ class ChapterService(BaseService):
         )
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(ChapterRepository)
+            repo = uow.get_repository("ChapterRepository")
             repo.add(chapter)
             uow.track(chapter)
             return ServiceResult(data=chapter)
@@ -65,7 +64,7 @@ class ChapterService(BaseService):
         self._authorize(actor, "curriculum", "chapter", "update")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(ChapterRepository)
+            repo = uow.get_repository("ChapterRepository")
             chapter = repo.get(chapter_id)
             if not chapter:
                 raise ChapterNotFoundError(f"Chapitre {chapter_id} introuvable")
@@ -87,7 +86,7 @@ class ChapterService(BaseService):
         self._authorize(actor, "curriculum", "chapter", "delete")
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(ChapterRepository)
+            repo = uow.get_repository("ChapterRepository")
             chapter = repo.get(chapter_id)
             if not chapter:
                 raise ChapterNotFoundError(f"Chapitre {chapter_id} introuvable")

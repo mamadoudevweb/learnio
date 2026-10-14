@@ -10,11 +10,6 @@ from src.core.entities import ServiceResult, utc_now
 from src.core.services import BaseService
 from src.domains.account.entities.account import Account
 from src.domains.account.exceptions import AccountInactiveError
-from src.domains.account.repositories.sql import AccountRepository
-from src.domains.account.subs.access_controle.repositories.sql import (
-    PermissionRepository,
-    RoleRepository,
-)
 from src.domains.account.subs.auth.entities.credential import Credential
 from src.domains.account.subs.auth.entities.credential_reset import CredentialReset
 from src.domains.account.subs.auth.entities.session import Session
@@ -29,11 +24,6 @@ from src.domains.account.subs.auth.repositories.filters import (
     CredentialResetFilter,
     SessionFilter,
 )
-from src.domains.account.subs.auth.repositories.sql import (
-    CredentialRepository,
-    CredentialResetRepository,
-    SessionRepository,
-)
 
 
 class AuthenticationService(BaseService):
@@ -42,11 +32,13 @@ class AuthenticationService(BaseService):
     def __init__(
         self,
         uow_factory: Any,
+        *,
         email_sender: EmailSender | None = None,
+        sender: EmailSender | None = None,
         reset_token_expire_minutes: int = 15,
     ) -> None:
         super().__init__(uow_factory)
-        self._email_sender = email_sender or ConsoleEmailSender()
+        self._email_sender = email_sender or sender or ConsoleEmailSender()
         self._reset_token_expire_minutes = reset_token_expire_minutes
 
     @property
@@ -71,8 +63,8 @@ class AuthenticationService(BaseService):
         """Inscrit un nouvel utilisateur (création de compte + credential)."""
         clean_email = email.strip().lower()
         with self._uow_factory() as uow:
-            cred_repo = uow.get_repository(CredentialRepository)
-            acc_repo = uow.get_repository(AccountRepository)
+            cred_repo = uow.get_repository("CredentialRepository")
+            acc_repo = uow.get_repository("AccountRepository")
 
             existing_cred = cred_repo.get(CredentialFilter(email=clean_email))
             if existing_cred:
@@ -110,11 +102,11 @@ class AuthenticationService(BaseService):
         """Authentifie un utilisateur et génère une session et un jeton."""
         clean_email = email.strip().lower()
         with self._uow_factory() as uow:
-            cred_repo = uow.get_repository(CredentialRepository)
-            acc_repo = uow.get_repository(AccountRepository)
-            sess_repo = uow.get_repository(SessionRepository)
-            role_repo = uow.get_repository(RoleRepository)
-            perm_repo = uow.get_repository(PermissionRepository)
+            cred_repo = uow.get_repository("CredentialRepository")
+            acc_repo = uow.get_repository("AccountRepository")
+            sess_repo = uow.get_repository("SessionRepository")
+            role_repo = uow.get_repository("RoleRepository")
+            perm_repo = uow.get_repository("PermissionRepository")
 
             cred = cred_repo.get(CredentialFilter(email=clean_email))
             if not cred or not check_password_hash(cred.password_hash, password):
@@ -160,8 +152,8 @@ class AuthenticationService(BaseService):
         """Vérifie qu'un jeton correspond à une session active et retourne le compte."""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         with self._uow_factory() as uow:
-            sess_repo = uow.get_repository(SessionRepository)
-            acc_repo = uow.get_repository(AccountRepository)
+            sess_repo = uow.get_repository("SessionRepository")
+            acc_repo = uow.get_repository("AccountRepository")
 
             session = sess_repo.get(
                 SessionFilter(token_hash=token_hash, is_active=True)
@@ -179,8 +171,8 @@ class AuthenticationService(BaseService):
         """Génère un jeton de réinitialisation de mot de passe à usage unique et l'envoie par email."""
         clean_email = email.strip().lower()
         with self._uow_factory() as uow:
-            cred_repo = uow.get_repository(CredentialRepository)
-            reset_repo = uow.get_repository(CredentialResetRepository)
+            cred_repo = uow.get_repository("CredentialRepository")
+            reset_repo = uow.get_repository("CredentialResetRepository")
 
             cred = cred_repo.get(CredentialFilter(email=clean_email))
             if not cred:
@@ -208,7 +200,7 @@ class AuthenticationService(BaseService):
         """Vérifie la validité d'un jeton de réinitialisation."""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         with self._uow_factory() as uow:
-            reset_repo = uow.get_repository(CredentialResetRepository)
+            reset_repo = uow.get_repository("CredentialResetRepository")
             reset = reset_repo.get(
                 CredentialResetFilter(token_hash=token_hash, is_valid=True)
             )
@@ -222,9 +214,9 @@ class AuthenticationService(BaseService):
         """Consomme le jeton et met à jour le mot de passe."""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         with self._uow_factory() as uow:
-            reset_repo = uow.get_repository(CredentialResetRepository)
-            cred_repo = uow.get_repository(CredentialRepository)
-            sess_repo = uow.get_repository(SessionRepository)
+            reset_repo = uow.get_repository("CredentialResetRepository")
+            cred_repo = uow.get_repository("CredentialRepository")
+            sess_repo = uow.get_repository("SessionRepository")
 
             reset = reset_repo.get(
                 CredentialResetFilter(token_hash=token_hash, is_valid=True)
@@ -262,7 +254,7 @@ class AuthenticationService(BaseService):
         """Déconnecte une session utilisateur."""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         with self._uow_factory() as uow:
-            sess_repo = uow.get_repository(SessionRepository)
+            sess_repo = uow.get_repository("SessionRepository")
             session = sess_repo.get(SessionFilter(token_hash=token_hash))
             if session:
                 session.revoke()

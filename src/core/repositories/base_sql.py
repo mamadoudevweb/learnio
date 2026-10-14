@@ -14,10 +14,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.core.entities import BaseEntity, EntityId
+from src.core.repositories.base import BaseRepository
 from src.core.repositories.filters import EntityFilter
 
 
-class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](ABC):
+class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](BaseRepository[E, F], ABC):
     """Repository SQL de base, générique sur l'entité et le filtre.
 
     Sous-classes obligatoires :
@@ -34,10 +35,6 @@ class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](ABC):
 
     def __init__(self, session: Session) -> None:
         self._session = session
-
-    # ------------------------------------------------------------------
-    # Lecture
-    # ------------------------------------------------------------------
 
     def get(self, criteria: EntityId | F) -> E | None:
         """Retourne une entité par clé primaire ou par filtre."""
@@ -68,10 +65,6 @@ class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](ABC):
         result = self._session.execute(query).scalar()
         return result or 0
 
-    # ------------------------------------------------------------------
-    # Écriture
-    # ------------------------------------------------------------------
-
     def add(self, entity: E) -> E:
         """Persiste une nouvelle entité."""
         orm_obj = self.mapper.to_orm(entity)
@@ -95,10 +88,6 @@ class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](ABC):
         if orm_obj is not None:
             self._session.delete(orm_obj)
             self._session.flush()
-
-    # ------------------------------------------------------------------
-    # Abstrait
-    # ------------------------------------------------------------------
 
     @abstractmethod
     def _apply_filter(self, query: Any, filter: F) -> Any:

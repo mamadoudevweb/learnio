@@ -1,19 +1,21 @@
 """Unité de travail SQL générique.
 
-Gère la session, le commit/rollback et la publication
-des événements de domaine après un commit réussi.
-Le dictionnaire ``REPOSITORY_CLASSES`` est injecté depuis
-``app/uow.py`` — le core ne connaît aucun domaine.
+Gère la session, le commit/rollback, l'accès aux repositories
+via un registre et la publication des événements de domaine après un commit réussi.
+L'unité de travail ne connaît aucun domaine ni repository concret.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Self
+from typing import Any, Self, overload
 
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.core.entities import BaseEntity
+from src.core.repositories.base import BaseRepository
+from src.core.unit_of_work.base import UnitOfWork
+from src.core.unit_of_work.registry import RepositoryRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +39,13 @@ def clear_subscribers() -> None:
     _SUBSCRIBERS.clear()
 
 
-class SqlUnitOfWork:
-    """Unité de travail SQL, agnostique des domaines.
+class SqlUnitOfWork(UnitOfWork):
+    """Unité de travail SQL, agnostique des domaines et basée sur un registre.
 
     Utilisation dans un service :
 
         with self._uow_factory() as uow:
-            repo = uow.get_repository(SubjectRepository)
+            repo = uow.get_repository("AccountRepository")
             ...
             uow.track(entity)       # pour publier ses événements
     """
@@ -51,12 +53,21 @@ class SqlUnitOfWork:
     def __init__(
         self,
         session_factory: sessionmaker[Session],
-        repository_classes: dict[str, type[Any]],
+        registry: RepositoryRegistry | None = None,
+        repository_classes: (
+            dict[str, type[BaseRepository[Any, Any]]]
+            | list[type[BaseRepository[Any, Any]]]
+            | None
+        ) = None,
     ) -> None:
         self._session_factory = session_factory
-        self._repository_classes = repository_classes
+        self._registry = registry if registry is not None else RepositoryRegistry()
+        if repository_classes:
+            self._registry.register_many(repository_classes)
         self._session: Session | None = None
-        self._repositories: dict[str, Any] = {}
+        self._repositories: dict[
+            type[BaseRepository[Any, Any]], BaseRepository[Any, Any]
+        ] = {}
         self._tracked_entities: list[BaseEntity[Any]] = []
 
     def __enter__(self) -> Self:
@@ -82,17 +93,40 @@ class SqlUnitOfWork:
             self._session.close()
             self._session = None
 
-    def register_repos(self, repo_classes) -> None:
-        # TODO: register repositories and log all registerations
-        ...
+    def register_repos(
+        self,
+        repo_classes: (
+            dict[str, type[BaseRepository[Any, Any]]]
+            | list[type[BaseRepository[Any, Any]]]
+        ),
+    ) -> None:
+        """Enregistre des classes de repository dans le registre associé."""
+        self._registry.register_many(repo_classes)
 
-    def get_repository(self, repository_cls: type[Any]) -> Any:
-        """Retourne (ou crée) l'instance du repository demandé."""
-        name = repository_cls.__name__
-        if name not in self._repositories:
-            assert self._session is not None
-            self._repositories[name] = repository_cls(self._session)
-        return self._repositories[name]
+    @overload
+    def get_repository[R: BaseRepository[Any, Any]](
+        self, name_or_cls: type[R]
+    ) -> R: ...
+
+    @overload
+    def get_repository(self, name_or_cls: str) -> BaseRepository[Any, Any]: ...
+
+    def get_repository[R: BaseRepository[Any, Any]](
+        self,
+        name_or_cls: str | type[R],
+    ) -> R | BaseRepository[Any, Any]:
+        """Retourne (ou crée) l'instance du repository demandé par son nom ou sa classe."""
+        if self._session is None:
+            raise RuntimeError(
+                "L'Unité de Travail doit être active (au sein d'un bloc `with uow:`) pour accéder aux repositories."
+            )
+
+        repo_cls = self._registry.resolve_class(name_or_cls)
+
+        if repo_cls not in self._repositories:
+            self._repositories[repo_cls] = repo_cls(self._session)
+
+        return self._repositories[repo_cls]  # type: ignore[return-value]
 
     def track(self, entity: BaseEntity[Any]) -> None:
         """Marque une entité pour la publication de ses événements au commit."""

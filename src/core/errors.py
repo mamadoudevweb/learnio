@@ -84,3 +84,10 @@ class PermissionDeniedError(AppError):
 
     code = "PERMISSION_DENIED"
     status = 403
+
+
+class RepositoryNotFoundError(AppError):
+    """Repository non enregistré dans le registre (500)."""
+
+    code = "REPOSITORY_NOT_FOUND"
+    status = 500

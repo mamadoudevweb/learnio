@@ -17,7 +17,7 @@ from src.app.domain_service_builder import build_domain_services
 from src.app.permissions_seed import seed_permissions
 from src.app.roles_seed import seed_admin_role
 from src.app.routes import register_routes
-from src.app.uow import REPOSITORY_CLASSES
+from src.app.uow import REPOSITORY_REGISTRY
 from src.core.config import load_config
 from src.core.database import Base
 from src.core.email import EmailSender, EmailService, create_email_sender
@@ -48,10 +48,12 @@ def create_app(
     if env in ("development", "testing"):
         Base.metadata.create_all(engine)
 
+    app.extensions["repository_registry"] = REPOSITORY_REGISTRY
+
     uow_factory = partial(
         SqlUnitOfWork,
         session_factory=session_factory,
-        repository_classes=REPOSITORY_CLASSES,
+        registry=REPOSITORY_REGISTRY,
     )
 
     if email_sender is None:

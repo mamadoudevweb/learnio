@@ -6,8 +6,6 @@ from src.core.services import BaseService, SupportsPermissionCheck
 from src.domains.account.entities.account import Account
 from src.domains.account.exceptions import AccountNotFoundError, RoleNotFoundError
 from src.domains.account.repositories.filters import AccountFilter
-from src.domains.account.repositories.sql import AccountRepository
-from src.domains.account.subs.access_controle.repositories.sql import RoleRepository
 
 
 class AccountService(BaseService):
@@ -18,7 +16,7 @@ class AccountService(BaseService):
     ) -> ServiceResult[Account]:
         self._authorize(actor, "account", "account", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(AccountRepository)
+            repo = uow.get_repository("AccountRepository")
             account = repo.get(account_id)
             if not account:
                 raise AccountNotFoundError(f"Compte {account_id} introuvable")
@@ -29,7 +27,7 @@ class AccountService(BaseService):
     ) -> ServiceResult[list[Account]]:
         self._authorize(actor, "account", "account", "read")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(AccountRepository)
+            repo = uow.get_repository("AccountRepository")
             accounts = repo.list(filter)
             count = repo.count(filter)
             return ServiceResult(data=accounts, meta={"total": count})
@@ -53,7 +51,7 @@ class AccountService(BaseService):
             role_ids=role_ids,
         )
         with self._uow_factory() as uow:
-            repo = uow.get_repository(AccountRepository)
+            repo = uow.get_repository("AccountRepository")
             repo.add(account)
             uow.track(account)
             return ServiceResult(data=account)
@@ -70,7 +68,7 @@ class AccountService(BaseService):
     ) -> ServiceResult[Account]:
         self._authorize(actor, "account", "account", "update")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(AccountRepository)
+            repo = uow.get_repository("AccountRepository")
             account = repo.get(account_id)
             if not account:
                 raise AccountNotFoundError(f"Compte {account_id} introuvable")
@@ -89,8 +87,8 @@ class AccountService(BaseService):
     ) -> ServiceResult[Account]:
         self._authorize(actor, "account", "account", "update")
         with self._uow_factory() as uow:
-            account_repo = uow.get_repository(AccountRepository)
-            role_repo = uow.get_repository(RoleRepository)
+            account_repo = uow.get_repository("AccountRepository")
+            role_repo = uow.get_repository("RoleRepository")
             account = account_repo.get(account_id)
             if not account:
                 raise AccountNotFoundError(f"Compte {account_id} introuvable")
@@ -107,7 +105,7 @@ class AccountService(BaseService):
     ) -> ServiceResult[Account]:
         self._authorize(actor, "account", "account", "update")
         with self._uow_factory() as uow:
-            account_repo = uow.get_repository(AccountRepository)
+            account_repo = uow.get_repository("AccountRepository")
             account = account_repo.get(account_id)
             if not account:
                 raise AccountNotFoundError(f"Compte {account_id} introuvable")
@@ -121,7 +119,7 @@ class AccountService(BaseService):
     ) -> ServiceResult[None]:
         self._authorize(actor, "account", "account", "delete")
         with self._uow_factory() as uow:
-            repo = uow.get_repository(AccountRepository)
+            repo = uow.get_repository("AccountRepository")
             account = repo.get(account_id)
             if not account:
                 raise AccountNotFoundError(f"Compte {account_id} introuvable")
