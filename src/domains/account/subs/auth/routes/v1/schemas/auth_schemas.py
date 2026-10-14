@@ -23,7 +23,7 @@ class PasswordResetRequestSchema(BaseModel):
 
 
 class PasswordResetConfirmSchema(BaseModel):
-    token: str = Field(..., min_length=1)
+    token: str | None = None
     new_password: str = Field(..., min_length=6)
 
 

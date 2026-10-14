@@ -18,9 +18,7 @@ from src.core.entities import BaseEntity
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Bus d'événements simplifié (synchrone, in-process)
-# ---------------------------------------------------------------------------
+
 _SUBSCRIBERS: dict[type, list[Any]] = {}
 
 
@@ -35,9 +33,10 @@ def publish(event: Any) -> None:
         handler(event)
 
 
-# ---------------------------------------------------------------------------
-# Unité de travail
-# ---------------------------------------------------------------------------
+def clear_subscribers() -> None:
+    """Vide tous les abonnements enregistrés (utile pour les tests)."""
+    _SUBSCRIBERS.clear()
+
 
 
 class SqlUnitOfWork:
@@ -62,7 +61,6 @@ class SqlUnitOfWork:
         self._repositories: dict[str, Any] = {}
         self._tracked_entities: list[BaseEntity[Any]] = []
 
-    # --- Context manager ---
 
     def __enter__(self) -> Self:
         self._session = self._session_factory()
@@ -74,7 +72,7 @@ class SqlUnitOfWork:
         self,
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb: Any,
+        exc_tb: object,
     ) -> None:
         assert self._session is not None
         try:
@@ -87,8 +85,10 @@ class SqlUnitOfWork:
             self._session.close()
             self._session = None
 
-    # --- API publique ---
-
+    def register_repos(self, repo_classes) -> None:
+        # TODO: register repositories and log all registerations
+        ...
+        
     def get_repository(self, repository_cls: type[Any]) -> Any:
         """Retourne (ou crée) l'instance du repository demandé."""
         name = repository_cls.__name__
@@ -101,7 +101,6 @@ class SqlUnitOfWork:
         """Marque une entité pour la publication de ses événements au commit."""
         self._tracked_entities.append(entity)
 
-    # --- Interne ---
 
     def _publish_events(self) -> None:
         """Collecte et publie les événements de toutes les entités suivies."""

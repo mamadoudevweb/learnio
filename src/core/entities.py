@@ -13,13 +13,11 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 EntityId = uuid.UUID
-
-ID = TypeVar("ID", bound=EntityId)
 
 
 def generate_id() -> EntityId:
@@ -49,7 +47,7 @@ class DomainEvent:
 # ---------------------------------------------------------------------------
 
 
-class BaseEntity(BaseModel, Generic[ID]):
+class BaseEntity[ID: EntityId](BaseModel):
     """Classe de base commune à toutes les entités du projet.
 
     Fournit :
@@ -82,11 +80,9 @@ class BaseEntity(BaseModel, Generic[ID]):
 # Service result (frozen dataclass — pure value object)
 # ---------------------------------------------------------------------------
 
-T = TypeVar("T")
-
 
 @dataclass(frozen=True, kw_only=True)
-class ServiceResult(Generic[T]):
+class ServiceResult[T]:
     """Enveloppe de retour pour toute opération de service réussie."""
 
     data: T

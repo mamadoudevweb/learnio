@@ -161,7 +161,7 @@ def test_validate_session_with_invalid_token_raises_invalid_credentials(domain_s
         auth_service.validate_session("non_existent_token_string")
 
 
-def test_request_password_reset_generates_token(domain_service):
+def test_request_password_reset_generates_token(domain_service, app):
     auth_service = domain_service.account.authentication_service
     auth_service.register(
         first_name="Reset",
@@ -171,7 +171,23 @@ def test_request_password_reset_generates_token(domain_service):
     )
 
     req_res = auth_service.request_password_reset("reset@learnio.app")
-    assert req_res.data["token"] is not None
+    assert req_res.data.get("message") is not None
+    assert "token" not in req_res.data
+
+    email_sender = app.extensions["email_sender"]
+    assert len(email_sender.outbox) == 1
+    sent_email = email_sender.outbox[0]
+    assert sent_email.to == "reset@learnio.app"
+    assert "code de réinitialisation" in sent_email.subject.lower()
+    assert sent_email.html_body is not None
+    assert "<!DOCTYPE html>" in sent_email.html_body
+    assert "LEARNIO" in sent_email.html_body
+    assert "Votre code à usage unique" in sent_email.html_body
+    assert "15 minutes" in sent_email.html_body
+    token = sent_email.metadata.get("token")
+    assert token is not None
+    assert token in sent_email.body
+    assert token in sent_email.html_body
 
 
 def test_request_password_reset_with_unknown_email_raises_credential_not_found(
@@ -183,7 +199,7 @@ def test_request_password_reset_with_unknown_email_raises_credential_not_found(
         auth_service.request_password_reset("nonexistent@learnio.app")
 
 
-def test_reset_password_updates_credential_password(domain_service):
+def test_reset_password_updates_credential_password(domain_service, app):
     auth_service = domain_service.account.authentication_service
     auth_service.register(
         first_name="ResetOk",
@@ -192,9 +208,10 @@ def test_reset_password_updates_credential_password(domain_service):
         password="OldPassword123!",
     )
 
-    reset_token = auth_service.request_password_reset("reset_ok@learnio.app").data[
-        "token"
-    ]
+    auth_service.request_password_reset("reset_ok@learnio.app")
+    sent_email = app.extensions["email_sender"].outbox[-1]
+    reset_token = sent_email.metadata["token"]
+
     auth_service.reset_password(reset_token, "BrandNewPassword123!")
 
     # Login with new password succeeds
@@ -204,7 +221,7 @@ def test_reset_password_updates_credential_password(domain_service):
     assert login_new.data["token"] is not None
 
 
-def test_reset_password_invalidates_old_password(domain_service):
+def test_reset_password_invalidates_old_password(domain_service, app):
     auth_service = domain_service.account.authentication_service
     auth_service.register(
         first_name="ResetInvalid",
@@ -213,9 +230,10 @@ def test_reset_password_invalidates_old_password(domain_service):
         password="OldPassword123!",
     )
 
-    reset_token = auth_service.request_password_reset("reset_invalid@learnio.app").data[
-        "token"
-    ]
+    auth_service.request_password_reset("reset_invalid@learnio.app")
+    sent_email = app.extensions["email_sender"].outbox[-1]
+    reset_token = sent_email.metadata["token"]
+
     auth_service.reset_password(reset_token, "BrandNewPassword123!")
 
     # Login with old password fails

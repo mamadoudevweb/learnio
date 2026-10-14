@@ -81,7 +81,7 @@ def test_login_route_invalid_credentials(client):
     assert res.json["success"] is False
 
 
-def test_password_reset_request_route_success(client):
+def test_password_reset_request_route_success(client, app):
     client.post(
         "/api/v1/auth/register",
         json={
@@ -97,10 +97,23 @@ def test_password_reset_request_route_success(client):
     )
     assert res.status_code == 200
     assert res.json["success"] is True
-    assert "token" in res.json["data"]
+    assert "token" not in res.json["data"]
+    assert "message" in res.json["data"]
+
+    email_sender = app.extensions["email_sender"]
+    assert len(email_sender.outbox) == 1
+    sent = email_sender.outbox[0]
+    assert sent.to == "reset_req@learnio.app"
+    assert sent.html_body is not None
+    assert "<!DOCTYPE html>" in sent.html_body
+    assert "LEARNIO" in sent.html_body
+    assert "Votre code à usage unique" in sent.html_body
+    token = sent.metadata["token"]
+    assert token in sent.body
+    assert token in sent.html_body
 
 
-def test_password_reset_confirm_route_success(client):
+def test_password_reset_confirm_route_success(client, app):
     client.post(
         "/api/v1/auth/register",
         json={
@@ -114,17 +127,64 @@ def test_password_reset_confirm_route_success(client):
         "/api/v1/auth/password-reset/request",
         json={"email": "reset_conf@learnio.app"},
     )
-    token = req_res.json["data"]["token"]
+    assert req_res.status_code == 200
+    assert "token" not in req_res.json["data"]
 
+    sent = app.extensions["email_sender"].outbox[-1]
+    token = sent.metadata["token"]
+
+    # Verify GET endpoint with token as query parameter
+    verify_res = client.get(f"/api/v1/auth/password-reset/confirm?token={token}")
+    assert verify_res.status_code == 200
+    assert verify_res.json["data"]["valid"] is True
+
+    # Confirm with token as query parameter
     confirm_res = client.post(
-        "/api/v1/auth/password-reset/confirm",
+        f"/api/v1/auth/password-reset/confirm?token={token}",
         json={
-            "token": token,
             "new_password": "NewSecretPassword123!",
         },
     )
     assert confirm_res.status_code == 200
     assert confirm_res.json["success"] is True
+
+
+def test_password_reset_confirm_with_path_parameter_success(client, app):
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "first_name": "ResetPath",
+            "last_name": "User",
+            "email": "reset_path@learnio.app",
+            "password": "OldPassword123!",
+        },
+    )
+    client.post(
+        "/api/v1/auth/password-reset/request",
+        json={"email": "reset_path@learnio.app"},
+    )
+    sent = app.extensions["email_sender"].outbox[-1]
+    token = sent.metadata["token"]
+
+    # Confirm with token in URL path
+    confirm_res = client.post(
+        f"/api/v1/auth/password-reset/confirm/{token}",
+        json={
+            "new_password": "PathPassword123!",
+        },
+    )
+    assert confirm_res.status_code == 200
+    assert confirm_res.json["success"] is True
+
+
+def test_password_reset_confirm_without_token_fails(client):
+    res = client.post(
+        "/api/v1/auth/password-reset/confirm",
+        json={"new_password": "MissingTokenPassword123!"},
+    )
+    assert res.status_code == 422
+    assert res.json["success"] is False
+    assert res.json["error"]["code"] == "VALIDATION_FAILED"
 
 
 def test_logout_route_success(client):

@@ -2,6 +2,7 @@ from typing import Any
 
 from flask import Blueprint, current_app, request
 
+from src.core.errors import ValidationError
 from src.core.routes.envelope import ok
 from src.domains.account.routes.v1.schemas.account_schemas import AccountResponseSchema
 from src.domains.account.subs.auth.routes.v1.schemas.auth_schemas import (
@@ -65,13 +66,39 @@ def request_password_reset() -> tuple[Any, int]:
     return ok(result.data)
 
 
+@auth_bp.route("/password-reset/confirm", methods=["GET"])
+@auth_bp.route("/password-reset/confirm/<token>", methods=["GET"])
+def verify_password_reset_token(token: str | None = None) -> tuple[Any, int]:
+    """Endpoint public de vérification de validité d'un jeton de réinitialisation."""
+    reset_token = token or request.args.get("token", type=str)
+    if not reset_token or not reset_token.strip():
+        raise ValidationError(
+            "Le jeton de réinitialisation est requis.",
+            details={"token": "Jeton manquant dans les paramètres d'URL."},
+        )
+    ds = current_app.extensions["domain_service"]
+    result = ds.account.authentication_service.validate_reset_token(
+        token=reset_token.strip()
+    )
+    return ok(result.data)
+
+
 @auth_bp.route("/password-reset/confirm", methods=["POST"])
-def confirm_password_reset() -> tuple[Any, int]:
+@auth_bp.route("/password-reset/confirm/<token>", methods=["POST"])
+def confirm_password_reset(token: str | None = None) -> tuple[Any, int]:
     """Endpoint public de confirmation de réinitialisation de mot de passe."""
     payload = PasswordResetConfirmSchema.model_validate(request.get_json(force=True))
+    reset_token = token or request.args.get("token", type=str) or payload.token
+    if not reset_token or not reset_token.strip():
+        raise ValidationError(
+            "Le jeton de réinitialisation est requis.",
+            details={
+                "token": "Jeton manquant dans les paramètres d'URL ou le corps de la requête."
+            },
+        )
     ds = current_app.extensions["domain_service"]
     ds.account.authentication_service.reset_password(
-        token=payload.token,
+        token=reset_token.strip(),
         new_password=payload.new_password,
     )
     return ok(None)

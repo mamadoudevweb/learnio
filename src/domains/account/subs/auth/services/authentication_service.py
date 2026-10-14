@@ -5,6 +5,7 @@ from typing import Any
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from src.core.email import EmailSender, InMemoryEmailSender
 from src.core.entities import ServiceResult, utc_now
 from src.core.services import BaseService
 from src.domains.account.entities.account import Account
@@ -37,6 +38,26 @@ from src.domains.account.subs.auth.repositories.sql import (
 
 class AuthenticationService(BaseService):
     """Service d'authentification, de gestion de session et de réinitialisation de mot de passe."""
+
+    def __init__(
+        self,
+        uow_factory: Any,
+        email_sender: EmailSender | None = None,
+        reset_token_expire_minutes: int = 15,
+    ) -> None:
+        super().__init__(uow_factory)
+        self._email_sender = email_sender or InMemoryEmailSender()
+        self._reset_token_expire_minutes = reset_token_expire_minutes
+
+    @property
+    def email_sender(self) -> EmailSender:
+        """Expéditeur d'emails utilisé par le service."""
+        return self._email_sender
+
+    @property
+    def reset_token_expire_minutes(self) -> int:
+        """Durée de validité des jetons de réinitialisation en minutes."""
+        return self._reset_token_expire_minutes
 
     def register(
         self,
@@ -155,7 +176,7 @@ class AuthenticationService(BaseService):
             return ServiceResult(data=account)
 
     def request_password_reset(self, email: str) -> ServiceResult[dict[str, Any]]:
-        """Génère un jeton de réinitialisation de mot de passe à usage unique."""
+        """Génère un jeton de réinitialisation de mot de passe à usage unique et l'envoie par email."""
         clean_email = email.strip().lower()
         with self._uow_factory() as uow:
             cred_repo = uow.get_repository(CredentialRepository)
@@ -167,18 +188,37 @@ class AuthenticationService(BaseService):
 
             raw_token = secrets.token_urlsafe(32)
             token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-            expires_at = utc_now() + timedelta(minutes=15)
+            expires_at = utc_now() + timedelta(
+                minutes=self._reset_token_expire_minutes
+            )
 
             reset = CredentialReset.create(
                 credential_id=cred.id,
                 token_hash=token_hash,
                 expires_at=expires_at,
                 email=clean_email,
+                token=raw_token,
             )
             reset_repo.add(reset)
             uow.track(reset)
 
-            return ServiceResult(data={"token": raw_token})
+        return ServiceResult(
+            data={"message": "Un email de réinitialisation a été envoyé."}
+        )
+
+    def validate_reset_token(self, token: str) -> ServiceResult[dict[str, Any]]:
+        """Vérifie la validité d'un jeton de réinitialisation."""
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        with self._uow_factory() as uow:
+            reset_repo = uow.get_repository(CredentialResetRepository)
+            reset = reset_repo.get(
+                CredentialResetFilter(token_hash=token_hash, is_valid=True)
+            )
+            if not reset or not reset.is_valid():
+                raise ResetTokenExpiredOrInvalidError(
+                    "Jeton de réinitialisation invalide ou expiré."
+                )
+            return ServiceResult(data={"valid": True})
 
     def reset_password(self, token: str, new_password: str) -> ServiceResult[None]:
         """Consomme le jeton et met à jour le mot de passe."""

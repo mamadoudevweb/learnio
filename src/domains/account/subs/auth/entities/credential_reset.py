@@ -28,6 +28,7 @@ class CredentialReset(BaseEntity[EntityId]):
         token_hash: str,
         expires_at: datetime,
         email: str,
+        token: str | None = None,
     ) -> CredentialReset:
         reset = cls(
             credential_id=credential_id,
@@ -40,6 +41,7 @@ class CredentialReset(BaseEntity[EntityId]):
                 reset_id=reset.id,
                 credential_id=credential_id,
                 email=email,
+                token=token,
             )
         )
         return reset

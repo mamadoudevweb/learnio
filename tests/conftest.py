@@ -16,6 +16,16 @@ def app():
         yield app
 
 
+@pytest.fixture(autouse=True)
+def clear_email_outbox(app):
+    """Vide la boîte d'envoi d'emails avant et après chaque test."""
+    if "email_sender" in app.extensions:
+        app.extensions["email_sender"].clear()
+    yield
+    if "email_sender" in app.extensions:
+        app.extensions["email_sender"].clear()
+
+
 @pytest.fixture
 def client(app):
     """Client de test Flask."""
@@ -57,9 +67,10 @@ def uow_factory(db_session):
 
 
 @pytest.fixture
-def domain_service(uow_factory):
+def domain_service(uow_factory, app):
     """Service de domaine pointant vers la db_session de test."""
-    return build_domain_services(uow_factory)
+    email_sender = app.extensions.get("email_sender")
+    return build_domain_services(uow_factory, email_sender=email_sender)
 
 
 @pytest.fixture

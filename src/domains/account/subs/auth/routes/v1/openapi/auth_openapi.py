@@ -117,12 +117,12 @@ COMPONENTS: dict[str, Any] = {
         },
         "PasswordResetConfirm": {
             "type": "object",
-            "required": ["token", "newPassword"],
+            "required": ["newPassword"],
             "properties": {
                 "token": {
                     "type": "string",
                     "writeOnly": True,
-                    "description": "Reset token received by the user",
+                    "description": "Reset token received by the user (optional if provided in URL parameter)",
                     "example": "a1b2c3d4e5f6...",
                 },
                 "newPassword": {
@@ -143,15 +143,27 @@ COMPONENTS: dict[str, Any] = {
                 "data": {
                     "type": "object",
                     "properties": {
-                        "message": {"type": "string", "example": "Password reset token sent"},
-                        "resetToken": {
+                        "message": {
                             "type": "string",
-                            "readOnly": True,
-                            "description": "Generated password reset token",
-                            "example": "a1b2c3d4e5f6...",
+                            "example": "Un email de réinitialisation a été envoyé.",
                         },
                     },
                 },
+                "meta": {"type": "object", "additionalProperties": True},
+            },
+        },
+        "TokenValidationData": {
+            "type": "object",
+            "properties": {
+                "valid": {"type": "boolean", "example": True},
+            },
+        },
+        "TokenValidationEnvelope": {
+            "type": "object",
+            "required": ["success", "data"],
+            "properties": {
+                "success": {"type": "boolean", "example": True},
+                "data": {"$ref": "#/components/schemas/TokenValidationData"},
                 "meta": {"type": "object", "additionalProperties": True},
             },
         },
@@ -257,7 +269,7 @@ PATHS: dict[str, Any] = {
         "post": {
             "tags": ["Auth"],
             "summary": "Request password reset",
-            "description": "Initiate password reset flow for an existing user account email.",
+            "description": "Initiate password reset flow; generates a one-time code and sends an HTML email.",
             "security": [],
             "requestBody": {
                 "required": True,
@@ -270,7 +282,7 @@ PATHS: dict[str, Any] = {
             },
             "responses": {
                 "200": {
-                    "description": "Password reset token generated",
+                    "description": "Password reset HTML email sent",
                     "content": {
                         "application/json": {
                             "schema": {"$ref": "#/components/schemas/PasswordResetEnvelope"}
@@ -297,14 +309,157 @@ PATHS: dict[str, Any] = {
         },
     },
     "/api/v1/auth/password-reset/confirm": {
+        "get": {
+            "tags": ["Auth"],
+            "summary": "Verify reset token validity",
+            "description": "Verify whether a password reset token passed in the URL parameter is valid and unexpired.",
+            "security": [],
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "query",
+                    "required": True,
+                    "description": "Password reset token received via email in URL parameter",
+                    "schema": {"type": "string"},
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Token is valid",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/TokenValidationEnvelope"}
+                        }
+                    },
+                },
+                "400": {
+                    "description": "Token is expired or invalid",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+                "422": {
+                    "description": "Missing token parameter",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+            },
+        },
         "post": {
             "tags": ["Auth"],
             "summary": "Confirm password reset",
-            "description": "Consume valid password reset token and update account password.",
+            "description": "Consume valid password reset token (provided via URL query parameter or request body) and update account password.",
             "security": [],
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "query",
+                    "required": False,
+                    "description": "Password reset token sent via email in URL parameter",
+                    "schema": {"type": "string"},
+                }
+            ],
             "requestBody": {
                 "required": True,
                 "description": "Reset confirmation payload",
+                "content": {
+                    "application/json": {
+                        "schema": {"$ref": "#/components/schemas/PasswordResetConfirm"}
+                    }
+                },
+            },
+            "responses": {
+                "200": {
+                    "description": "Password updated successfully",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/EmptyEnvelope"}
+                        }
+                    },
+                },
+                "400": {
+                    "description": "Reset token is invalid, expired, or already used",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+                "422": {
+                    "description": "Validation error in request payload",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+            },
+        },
+    },
+    "/api/v1/auth/password-reset/confirm/{token}": {
+        "get": {
+            "tags": ["Auth"],
+            "summary": "Verify reset token validity with path token",
+            "description": "Verify whether a password reset token provided in path parameter is valid.",
+            "security": [],
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "path",
+                    "required": True,
+                    "description": "Password reset token in URL path",
+                    "schema": {"type": "string"},
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Reset token is valid",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/TokenValidationEnvelope"}
+                        }
+                    },
+                },
+                "400": {
+                    "description": "Reset token is invalid, expired, or already used",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+                "422": {
+                    "description": "Missing token parameter",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorEnvelope"}
+                        }
+                    },
+                },
+            },
+        },
+        "post": {
+            "tags": ["Auth"],
+            "summary": "Confirm password reset with path token",
+            "description": "Consume valid password reset token provided in URL path parameter and update account password.",
+            "security": [],
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "path",
+                    "required": True,
+                    "description": "Password reset token sent via email in URL path",
+                    "schema": {"type": "string"},
+                }
+            ],
+            "requestBody": {
+                "required": True,
+                "description": "Reset confirmation payload with new password",
                 "content": {
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/PasswordResetConfirm"}

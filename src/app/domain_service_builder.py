@@ -40,7 +40,14 @@ class DomainServices:
         return self.account
 
 
-def build_domain_services(uow_factory: Any) -> DomainServices:
+from src.core.email import EmailSender
+
+
+def build_domain_services(
+    uow_factory: Any,
+    email_sender: EmailSender | None = None,
+    reset_token_expire_minutes: int = 15,
+) -> DomainServices:
     """Construit et retourne le conteneur de services de domaine."""
     curriculum = CurriculumDomainService(
         subject_service=SubjectService(uow_factory),
@@ -52,7 +59,11 @@ def build_domain_services(uow_factory: Any) -> DomainServices:
     )
     account = AccountDomainService(
         account_service=AccountService(uow_factory),
-        authentication_service=AuthenticationService(uow_factory),
+        authentication_service=AuthenticationService(
+            uow_factory,
+            email_sender=email_sender,
+            reset_token_expire_minutes=reset_token_expire_minutes,
+        ),
         role_service=RoleService(uow_factory),
         permission_service=PermissionService(uow_factory),
     )

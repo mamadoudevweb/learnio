@@ -48,6 +48,7 @@ class PasswordResetRequested(DomainEvent):
     reset_id: UUID
     credential_id: UUID
     email: str
+    token: str | None = None
 
 
 @dataclass(frozen=True, kw_only=True)

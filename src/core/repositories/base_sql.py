@@ -7,7 +7,7 @@ et ne font que configurer le modèle ORM, le mapper et le filtre.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -16,11 +16,8 @@ from sqlalchemy.orm import Session
 from src.core.entities import BaseEntity, EntityId
 from src.core.repositories.filters import EntityFilter
 
-E = TypeVar("E", bound=BaseEntity[Any])
-F = TypeVar("F", bound=EntityFilter)
 
-
-class BaseSqlRepository(ABC, Generic[E, F]):
+class BaseSqlRepository[E: BaseEntity[Any], F: EntityFilter](ABC):
     """Repository SQL de base, générique sur l'entité et le filtre.
 
     Sous-classes obligatoires :
