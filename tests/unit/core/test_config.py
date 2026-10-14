@@ -2,6 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.core.config import (
+    ConfigBuilder,
     DevelopmentConfig,
     ProductionConfig,
     TestingConfig,
@@ -99,3 +100,56 @@ def test_production_config_smtp_valid():
     flask_cfg = config.to_flask_config()
     assert flask_cfg["SMTP_HOST"] == "smtp.example.com"
     assert flask_cfg["EMAIL_BACKEND"] == "smtp"
+
+
+def test_config_builder_development():
+    config = (
+        ConfigBuilder("development")
+        .with_debug(False)
+        .with_database_url("sqlite:///custom.db")
+        .with_rate_limit("500 per hour")
+        .with_token_expiry(30)
+        .with_upload_dir("custom_uploads", max_size_mb=50)
+        .build()
+    )
+    assert isinstance(config, DevelopmentConfig)
+    assert config.DEBUG is False
+    assert config.DATABASE_URL == "sqlite:///custom.db"
+    assert config.RATELIMIT_DEFAULT == "500 per hour"
+    assert config.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES == 30
+    assert config.UPLOAD_DIR == "custom_uploads"
+    assert config.MAX_FILE_SIZE_MB == 50
+
+
+def test_config_builder_production():
+    config = (
+        ConfigBuilder("production")
+        .with_secret_key("s" * 32)
+        .with_jwt_secret_key("j" * 32)
+        .with_database_url("postgresql://user:pass@localhost:5432/learnio")
+        .with_email(
+            backend="smtp",
+            from_email="admin@learnio.app",
+            smtp_host="smtp.learnio.app",
+            smtp_port=587,
+            smtp_user="admin",
+            smtp_password="password",
+            smtp_use_tls=True,
+        )
+        .build()
+    )
+    assert isinstance(config, ProductionConfig)
+    assert config.SECRET_KEY == "s" * 32
+    assert config.JWT_SECRET_KEY == "j" * 32
+    assert config.EMAIL_BACKEND == "smtp"
+    assert config.SMTP_HOST == "smtp.learnio.app"
+
+
+def test_config_builder_from_mapping_and_overrides():
+    builder = ConfigBuilder("testing").from_mapping({"UPLOAD_DIR": "test_uploads"})
+    builder.with_override("DEBUG", False)
+    builder.with_environment("development")
+    config = builder.build()
+    assert isinstance(config, DevelopmentConfig)
+    assert config.UPLOAD_DIR == "test_uploads"
+    assert config.DEBUG is False

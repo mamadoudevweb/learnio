@@ -7,8 +7,9 @@ Il ne dépend que du contrat abstrait ``BaseRepository``.
 from __future__ import annotations
 
 import logging
-from typing import Any, overload
+from typing import Any, Self, overload
 
+from src.core.builder import BaseBuilder
 from src.core.errors import RepositoryNotFoundError
 from src.core.repositories.base import BaseRepository
 
@@ -168,3 +169,49 @@ class RepositoryRegistry:
         self._registry.clear()
         self._normalized_registry.clear()
         self._canonical_names.clear()
+
+
+class RepositoryRegistryBuilder(BaseBuilder[RepositoryRegistry]):
+    """Builder fluide pour construire et configurer un RepositoryRegistry."""
+
+    def __init__(self, registry: RepositoryRegistry | None = None) -> None:
+        self._registry = registry if registry is not None else RepositoryRegistry()
+        self._log_step("RepositoryRegistryBuilder initialisé")
+
+    def register(
+        self,
+        repo_cls: type[BaseRepository[Any, Any]],
+        *,
+        name: str | None = None,
+        aliases: list[str] | None = None,
+    ) -> Self:
+        """Enregistre une classe de repository avec son nom canonique et ses alias."""
+        self._registry.register(repo_cls, name=name, aliases=aliases)
+        self._log_step(
+            "Repository '%s' ajouté au builder (alias=%s)",
+            name or repo_cls.__name__,
+            aliases or [],
+        )
+        return self
+
+    def register_many(
+        self,
+        repos: (
+            dict[str, type[BaseRepository[Any, Any]]]
+            | list[type[BaseRepository[Any, Any]]]
+        ),
+    ) -> Self:
+        """Enregistre plusieurs classes de repositories."""
+        self._registry.register_many(repos)
+        self._log_step(
+            "Enregistrement en lot de repositories (%s éléments)", len(repos)
+        )
+        return self
+
+    def build(self) -> RepositoryRegistry:
+        """Finalise et retourne le registre de repositories construit."""
+        self._log_step(
+            "Construction du RepositoryRegistry terminée avec %d repositories",
+            len(self._registry.registered_names()),
+        )
+        return self._registry
