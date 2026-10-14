@@ -11,6 +11,8 @@ from typing import Any, Self
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
+from src.core.builder import BaseBuilder
+
 
 class BaseConfig(BaseSettings):
     """Configuration de base, commune à tous les environnements."""
@@ -131,7 +133,122 @@ CONFIGS: dict[str, type[BaseConfig]] = {
 }
 
 
+class ConfigBuilder(BaseBuilder[BaseConfig]):
+    """Builder fluide pour construire la configuration de l'application."""
+
+    def __init__(self, env: str = "development") -> None:
+        self._env = env
+        self._overrides: dict[str, Any] = {}
+        self._log_step("ConfigBuilder initialisé pour l'environnement '%s'", env)
+
+    def with_environment(self, env: str) -> Self:
+        """Définit l'environnement cible (development, testing, production)."""
+        self._env = env
+        self._log_step("Environnement configuré : %s", env)
+        return self
+
+    def with_debug(self, debug: bool) -> Self:
+        """Active ou désactive le mode debug."""
+        self._overrides["DEBUG"] = debug
+        self._log_step("DEBUG configuré : %s", debug)
+        return self
+
+    def with_secret_key(self, secret_key: str) -> Self:
+        """Définit la clé secrète Flask."""
+        self._overrides["SECRET_KEY"] = secret_key
+        self._log_step("SECRET_KEY configuré")
+        return self
+
+    def with_jwt_secret_key(self, jwt_secret_key: str) -> Self:
+        """Définit la clé secrète JWT."""
+        self._overrides["JWT_SECRET_KEY"] = jwt_secret_key
+        self._log_step("JWT_SECRET_KEY configuré")
+        return self
+
+    def with_database_url(self, database_url: str) -> Self:
+        """Définit l'URL de connexion à la base de données."""
+        self._overrides["DATABASE_URL"] = database_url
+        self._log_step("DATABASE_URL configuré : %s", database_url)
+        return self
+
+    def with_rate_limit(self, limit: str) -> Self:
+        """Définit la limite de débit par défaut."""
+        self._overrides["RATELIMIT_DEFAULT"] = limit
+        self._log_step("RATELIMIT_DEFAULT configuré : %s", limit)
+        return self
+
+    def with_upload_dir(self, upload_dir: str, max_size_mb: int | None = None) -> Self:
+        """Définit le répertoire d'upload et éventuellement la taille maximale en Mo."""
+        self._overrides["UPLOAD_DIR"] = upload_dir
+        if max_size_mb is not None:
+            self._overrides["MAX_FILE_SIZE_MB"] = max_size_mb
+        self._log_step(
+            "UPLOAD_DIR configuré : %s (max_size_mb=%s)", upload_dir, max_size_mb
+        )
+        return self
+
+    def with_email(
+        self,
+        backend: str,
+        *,
+        from_email: str | None = None,
+        smtp_host: str | None = None,
+        smtp_port: int | None = None,
+        smtp_user: str | None = None,
+        smtp_password: str | None = None,
+        smtp_use_tls: bool | None = None,
+        smtp_use_ssl: bool | None = None,
+    ) -> Self:
+        """Configure les paramètres d'envoi d'e-mails."""
+        self._overrides["EMAIL_BACKEND"] = backend
+        if from_email is not None:
+            self._overrides["EMAIL_FROM"] = from_email
+        if smtp_host is not None:
+            self._overrides["SMTP_HOST"] = smtp_host
+        if smtp_port is not None:
+            self._overrides["SMTP_PORT"] = smtp_port
+        if smtp_user is not None:
+            self._overrides["SMTP_USER"] = smtp_user
+        if smtp_password is not None:
+            self._overrides["SMTP_PASSWORD"] = smtp_password
+        if smtp_use_tls is not None:
+            self._overrides["SMTP_USE_TLS"] = smtp_use_tls
+        if smtp_use_ssl is not None:
+            self._overrides["SMTP_USE_SSL"] = smtp_use_ssl
+        self._log_step("Paramètres email configurés : backend=%s", backend)
+        return self
+
+    def with_token_expiry(self, minutes: int) -> Self:
+        """Définit la durée d'expiration du token de réinitialisation en minutes."""
+        self._overrides["PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"] = minutes
+        self._log_step(
+            "PASSWORD_RESET_TOKEN_EXPIRE_MINUTES configuré : %s min", minutes
+        )
+        return self
+
+    def with_override(self, key: str, value: Any) -> Self:
+        """Surcharge une clé de configuration quelconque."""
+        self._overrides[key] = value
+        self._log_step("Surcharge de configuration : %s=%s", key, value)
+        return self
+
+    def from_mapping(self, mapping: dict[str, Any]) -> Self:
+        """Applique un ensemble de clés / valeurs depuis un dictionnaire."""
+        self._overrides.update(mapping)
+        self._log_step("Mise à jour depuis un dictionnaire (%d clés)", len(mapping))
+        return self
+
+    def build(self) -> BaseConfig:
+        """Construit et valide l'instance de configuration appropriée."""
+        config_cls = CONFIGS.get(self._env, DevelopmentConfig)
+        self._log_step(
+            "Construction de la configuration %s avec %d surcharges",
+            config_cls.__name__,
+            len(self._overrides),
+        )
+        return config_cls(**self._overrides)
+
+
 def load_config(env: str = "development") -> BaseConfig:
     """Charge la configuration correspondant à l'environnement demandé."""
-    cls = CONFIGS.get(env, DevelopmentConfig)
-    return cls()
+    return ConfigBuilder(env).build()
