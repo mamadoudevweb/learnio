@@ -14,7 +14,6 @@ from typing import Any, Self
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from pydantic import ValidationError as PydanticValidationError
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.app.docs import register_docs
@@ -28,7 +27,7 @@ from src.app.routes import register_routes
 from src.app.uow import REPOSITORY_REGISTRY
 from src.core.builder import BaseBuilder
 from src.core.config import BaseConfig, ConfigBuilder, load_config
-from src.core.database import Base
+from src.core.database import Base, db
 from src.core.email import EmailSender, EmailService, create_email_sender
 from src.core.errors import AppError
 from src.core.unit_of_work.registry import (
@@ -192,11 +191,15 @@ class AppBuilder(BaseBuilder[Flask]):
                 JWTManager(app)
                 self._log_step("JWTManager initialisé")
 
-            # 4. Base de données
+            # 4. Base de données & Flask-SQLAlchemy
+            db.init_app(app)
+            self._log_step("Flask-SQLAlchemy initialisé avec l'application")
+
             engine = self._engine
             if engine is None:
-                engine = create_engine(config.DATABASE_URL, echo=config.DEBUG)
+                engine = db.engine
             app.extensions["engine"] = engine
+            app.extensions["db"] = db
 
             session_factory = self._session_factory
             if session_factory is None:

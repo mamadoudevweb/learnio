@@ -180,6 +180,8 @@ def test_app_builder_creates_flask_app():
     assert isinstance(app, Flask)
     assert app.name == "test_learnio"
     assert "engine" in app.extensions
+    assert "db" in app.extensions
+    assert "sqlalchemy" in app.extensions
     assert "repository_registry" in app.extensions
     assert "domain_service" in app.extensions
     assert "email_sender" in app.extensions
