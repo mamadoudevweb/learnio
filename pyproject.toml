@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 license = { text = "MIT" }
 authors = [
-    { name = "Mamadou", email = "mamadou@example.com" },
+    { name = "mamadoudevweb", email = "mamadou.web.dev@gmail.com" },
 ]
 keywords = [
     "flask",
@@ -24,8 +24,8 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: Flask",
     "Intended Audience :: Education",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Student",
+    "License :: OSI Approved :: MIT License", # to be changed later
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.14",
